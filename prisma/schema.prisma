@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}
+
+model Provider {
+  id               String       @id @default(cuid())
+  slug             String       @unique
+  name             String
+  logoUrl          String?
+  categories       String       // Almacenado como JSON string ej. ["hosting","vps"]
+  plan             String
+  priceFrom        Float
+  priceBefore      Float
+  period           String       // "mes" | "año"
+  scorePrecio      Float
+  scoreRendimiento Float
+  scoreSoporte     Float
+  scoreFacilidad   Float
+  uptime           Float
+  affiliateUrl     String
+  active           Boolean      @default(true)
+  clicks           Int          @default(0)
+  badge            String?      // ej. "HOT", "MEJOR PRECIO", "TOP RENDIMIENTO"
+  badgeColor       String?      // "green" | "red" | "gold" | "dark"
+  coupons          Coupon[]
+  picks            Pick[]
+  clickEvents      ClickEvent[]
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  name      String
+  icon      String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model Badge {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  label     String
+  color     String   @default("green") // "green" | "red" | "gold" | "dark"
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model Coupon {
+  id          String       @id @default(cuid())
+  code        String       @unique
+  discount    String
+  condition   String
+  providerId  String
+  provider    Provider     @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  expiresAt   DateTime?
+  verified    Boolean      @default(true)
+  clicks      Int          @default(0)
+  clickEvents ClickEvent[]
+  createdAt   DateTime     @default(now())
+}
+
+model Pick {
+  id         String   @id @default(cuid())
+  position   Int
+  providerId String
+  provider   Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  tag        String
+  titulo     String
+  veredicto  String
+  createdAt  DateTime @default(now())
+}
+
+model TickerItem {
+  id        String   @id @default(cuid())
+  text      String
+  hot       Boolean  @default(false)
+  order     Int
+  createdAt DateTime @default(now())
+}
+
+model Subscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
+
+model ClickEvent {
+  id         String    @id @default(cuid())
+  providerId String?
+  provider   Provider? @relation(fields: [providerId], references: [id], onDelete: SetNull)
+  couponId   String?
+  coupon     Coupon?   @relation(fields: [couponId], references: [id], onDelete: SetNull)
+  type       String    // "affiliate_link" | "coupon_copy"
+  createdAt  DateTime  @default(now())
+}
