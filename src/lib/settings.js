@@ -29,6 +29,11 @@ const DEFAULT_SETTINGS = {
   maintenanceMode: false,
   enableComments: false,
   autoVerifyCoupons: true,
+  // Analítica, Search Console & Inyecciones de Código
+  googleAnalyticsId: '',
+  googleSearchConsoleCode: '',
+  customHeadCode: '',
+  customBodyCode: '',
 };
 
 export function getSettings() {

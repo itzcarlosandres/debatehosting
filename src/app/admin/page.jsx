@@ -215,9 +215,14 @@ export default function AdminPage() {
     maintenanceMode: false,
     enableComments: false,
     autoVerifyCoupons: true,
+    googleAnalyticsId: '',
+    googleSearchConsoleCode: '',
+    customHeadCode: '',
+    customBodyCode: '',
   });
   const [settingsSubtab, setSettingsSubtab] = useState('general');
   const [settingsSaving, setSettingsSaving] = useState(false);
+  const [resettingContent, setResettingContent] = useState(false);
   const [uploadingAsset, setUploadingAsset] = useState(null); // 'faviconUrl' | 'logoUrl' | 'iconUrl' | null
 
   // Estados de Seguridad del Perfil Admin
@@ -474,6 +479,29 @@ export default function AdminPage() {
       toast.error(err.message || 'Error al guardar configuración.');
     } finally {
       setSettingsSaving(false);
+    }
+  };
+
+  const handleResetContent = async () => {
+    const confirmed = window.confirm(
+      '⚠️ ¿Estás completamente seguro de vaciar todo el contenido de la web a 0?\n\nSe eliminarán todos los proveedores de prueba, cupones, elegidos del podio, suscriptores y métricas.\n\n✓ Tu cuenta de administrador se mantendrá intacta.'
+    );
+    if (!confirmed) return;
+
+    setResettingContent(true);
+    try {
+      const res = await authFetch('/api/admin/reset-content', {
+        method: 'POST',
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al vaciar contenido');
+
+      toast.success('¡Web reseteada a 0 exitosamente! Todo el contenido de prueba ha sido eliminado.');
+      await loadCurrentData();
+    } catch (err) {
+      toast.error(err.message || 'Error al resetear la base de datos.');
+    } finally {
+      setResettingContent(false);
     }
   };
 
@@ -3861,6 +3889,76 @@ export default function AdminPage() {
                   <span className="settings-hint">Separadas por comas. Utilizadas en los metatags principales.</span>
                 </div>
 
+                <div className="settings-field" style={{ marginTop: '1rem' }}>
+                  <label className="settings-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <Icon name="globe" size={14} />
+                    <span>Google Search Console (Código o Meta Tag)</span>
+                  </label>
+                  <input
+                    type="text"
+                    className="settings-input"
+                    placeholder="Pega el código de verificación o la etiqueta completa <meta name='google-site-verification' content='...' />"
+                    value={settingsData.googleSearchConsoleCode || ''}
+                    onChange={(e) => setSettingsData({ ...settingsData, googleSearchConsoleCode: e.target.value })}
+                  />
+                  <span className="settings-hint">
+                    Se inyectará automáticamente en el <code>&lt;head&gt;</code> de la web para verificar la propiedad en Google Search Console.
+                  </span>
+                </div>
+
+                <div className="settings-field">
+                  <label className="settings-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <Icon name="barChart" size={14} />
+                    <span>Google Analytics 4 (Measurement ID)</span>
+                  </label>
+                  <input
+                    type="text"
+                    className="settings-input"
+                    placeholder="ej. G-XXXXXXXXXX"
+                    value={settingsData.googleAnalyticsId || ''}
+                    onChange={(e) => setSettingsData({ ...settingsData, googleAnalyticsId: e.target.value })}
+                  />
+                  <span className="settings-hint">
+                    ID de medición oficial de GA4. Cargará el script gtag.js de Google Tag Manager de manera asíncrona y optimizada.
+                  </span>
+                </div>
+
+                <div className="settings-field">
+                  <label className="settings-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <Icon name="code" size={14} />
+                    <span>Código Personalizado en &lt;head&gt; (Scripts, Píxeles, Verificaciones)</span>
+                  </label>
+                  <textarea
+                    rows={4}
+                    className="settings-textarea"
+                    style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}
+                    placeholder="<!-- Pega aquí scripts de Meta Pixel, Microsoft Clarity, Hotjar, estilos CSS adicionales o etiquetas <meta> -->"
+                    value={settingsData.customHeadCode || ''}
+                    onChange={(e) => setSettingsData({ ...settingsData, customHeadCode: e.target.value })}
+                  />
+                  <span className="settings-hint">
+                    Cualquier etiqueta que requiera ubicarse dentro de <code>&lt;head&gt;</code>.
+                  </span>
+                </div>
+
+                <div className="settings-field">
+                  <label className="settings-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <Icon name="terminal" size={14} />
+                    <span>Código Personalizado antes de &lt;/body&gt; (Scripts de Body / Widgets)</span>
+                  </label>
+                  <textarea
+                    rows={3}
+                    className="settings-textarea"
+                    style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}
+                    placeholder="<!-- Pega aquí scripts de widgets de chat, noscript, o herramientas que carguen al final -->"
+                    value={settingsData.customBodyCode || ''}
+                    onChange={(e) => setSettingsData({ ...settingsData, customBodyCode: e.target.value })}
+                  />
+                  <span className="settings-hint">
+                    Código que se ejecutará justo antes del cierre de <code>&lt;/body&gt;</code>.
+                  </span>
+                </div>
+
                 <div className="settings-grid-2" style={{ marginTop: '0.5rem' }}>
                   <div style={{
                     padding: '1.1rem',
@@ -4135,7 +4233,7 @@ export default function AdminPage() {
                     </strong>
                     <div style={{ marginTop: '0.6rem', display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.85rem' }}>
                       <div><strong>Framework:</strong> Next.js 14+ (App Router)</div>
-                      <div><strong>ORM:</strong> Prisma Client (SQLite local)</div>
+                      <div><strong>ORM:</strong> Prisma Client (PostgreSQL)</div>
                       <div><strong>Estilos:</strong> CSS Puro Editorial (Bordes tinta & sombras duras)</div>
                       <div><strong>Tema Consola:</strong> Dark Black (#090807) & Papel Crema</div>
                     </div>
@@ -4183,6 +4281,46 @@ export default function AdminPage() {
                     className="btn btn-secondary btn-sm"
                   >
                     <span>Sincronizar Datos</span>
+                  </button>
+                </div>
+
+                {/* ZONA DE PELIGRO: VACIAR A 0 */}
+                <div style={{
+                  marginTop: '1.5rem',
+                  padding: '1.25rem',
+                  backgroundColor: isDark ? 'rgba(176, 58, 38, 0.08)' : '#FFF5F5',
+                  border: '1.5px solid ' + (isDark ? '#B03A26' : '#E53E3E'),
+                  borderRadius: 'var(--radius-sm)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.75rem'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#B03A26' }}>
+                    <Icon name="alertTriangle" size={18} />
+                    <strong style={{ fontSize: '0.95rem' }}>Zona de Peligro: Vaciar la Web a 0</strong>
+                  </div>
+                  <p style={{ fontSize: '0.82rem', color: isDark ? '#D19288' : '#742A2A', margin: 0, lineHeight: 1.5 }}>
+                    Esta acción eliminará todos los proveedores de muestra, cupones, elegidos del podio, noticias del ticker, suscriptores y eventos de clics.
+                    <strong> Tu usuario administrador se mantendrá intacto</strong> para que sigas teniendo acceso al panel.
+                  </p>
+                  <button
+                    onClick={handleResetContent}
+                    disabled={resettingContent}
+                    className="btn btn-sm"
+                    style={{
+                      backgroundColor: '#B03A26',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      alignSelf: 'flex-start',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      fontWeight: 600,
+                      cursor: resettingContent ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    <Icon name="trash" size={13} />
+                    <span>{resettingContent ? 'Vaciando base de datos...' : 'Resetear Todo el Contenido a 0'}</span>
                   </button>
                 </div>
               </div>

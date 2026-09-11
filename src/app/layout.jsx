@@ -1,6 +1,7 @@
 import './globals.css';
 import { ToastProvider } from '../context/ToastContext';
 import { getSettings } from '@/lib/settings';
+import { CustomCodeInjector } from '@/components/CustomCodeInjector';
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://debatehosting.com';
 
@@ -31,7 +32,11 @@ export async function generateMetadata() {
     settings.defaultMetaDescription ||
     'Medio editorial y comparador técnico independiente de hosting web, servidores VPS, cloud y cupones verificados. Medición real de latencia TTFB, uptime y relación calidad-precio sin tapujos.';
 
-  return {
+  const cleanGsc = (settings.googleSearchConsoleCode || '')
+    .replace(/<meta[^>]+content=["']([^"']+)["'][^>]*>/i, '$1')
+    .trim();
+
+  const metadata = {
     metadataBase: new URL(baseUrl),
     title: {
       default: `${siteName} — ${tagline}`,
@@ -111,6 +116,14 @@ export async function generateMetadata() {
       apple: settings.iconUrl || faviconWithVersion || '/apple-touch-icon.png',
     },
   };
+
+  if (cleanGsc) {
+    metadata.verification = {
+      google: cleanGsc,
+    };
+  }
+
+  return metadata;
 }
 
 export default function RootLayout({ children }) {
@@ -125,10 +138,33 @@ export default function RootLayout({ children }) {
   );
   const icon = settings.iconUrl || faviconWithVersion || '/apple-touch-icon.png';
   const mimeType = getFaviconMime(rawFavicon);
+  const cleanGsc = (settings.googleSearchConsoleCode || '')
+    .replace(/<meta[^>]+content=["']([^"']+)["'][^>]*>/i, '$1')
+    .trim();
 
   return (
     <html lang="es">
       <head>
+        {cleanGsc && <meta name="google-site-verification" content={cleanGsc} />}
+        {settings.googleAnalyticsId && (
+          <>
+            <script
+              async
+              src={`https://www.googletagmanager.com/gtag/js?id=${settings.googleAnalyticsId.trim()}`}
+            />
+            <script
+              id="google-analytics-init"
+              dangerouslySetInnerHTML={{
+                __html: `
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', '${settings.googleAnalyticsId.trim()}');
+                `,
+              }}
+            />
+          </>
+        )}
         {isCustomFavicon ? (
           <>
             <link rel="icon" href={faviconWithVersion} type={mimeType} />
@@ -150,7 +186,14 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body>
+        <CustomCodeInjector headCode={settings.customHeadCode} />
         <ToastProvider>{children}</ToastProvider>
+        {settings.customBodyCode && (
+          <div
+            id="custom-body-scripts"
+            dangerouslySetInnerHTML={{ __html: settings.customBodyCode }}
+          />
+        )}
       </body>
     </html>
   );
