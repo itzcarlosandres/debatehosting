@@ -19,8 +19,11 @@ function getFaviconMime(url) {
 export async function generateMetadata() {
   const settings = getSettings();
   const rawFavicon = settings.faviconUrl || '/favicon.svg';
+  const cleanFavicon = rawFavicon.startsWith('/') || rawFavicon.startsWith('http')
+    ? rawFavicon
+    : `/${rawFavicon}`;
   const version = settings.updatedAt ? new Date(settings.updatedAt).getTime() : Date.now();
-  const faviconWithVersion = rawFavicon.includes('?') ? rawFavicon : `${rawFavicon}?v=${version}`;
+  const faviconWithVersion = cleanFavicon.includes('?') ? cleanFavicon : `${cleanFavicon}?v=${version}`;
   const isCustomFavicon = Boolean(
     settings.faviconUrl &&
     settings.faviconUrl !== '/favicon.svg' &&
@@ -129,8 +132,11 @@ export async function generateMetadata() {
 export default function RootLayout({ children }) {
   const settings = getSettings();
   const rawFavicon = settings.faviconUrl || '/favicon.svg';
+  const cleanFavicon = rawFavicon.startsWith('/') || rawFavicon.startsWith('http')
+    ? rawFavicon
+    : `/${rawFavicon}`;
   const version = settings.updatedAt ? new Date(settings.updatedAt).getTime() : Date.now();
-  const faviconWithVersion = rawFavicon.includes('?') ? rawFavicon : `${rawFavicon}?v=${version}`;
+  const faviconWithVersion = cleanFavicon.includes('?') ? cleanFavicon : `${cleanFavicon}?v=${version}`;
   const isCustomFavicon = Boolean(
     settings.faviconUrl &&
     settings.faviconUrl !== '/favicon.svg' &&

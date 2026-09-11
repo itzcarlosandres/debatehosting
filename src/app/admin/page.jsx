@@ -314,7 +314,8 @@ export default function AdminPage() {
         link.rel = 'icon';
         document.head.appendChild(link);
       }
-      link.href = settingsData.faviconUrl;
+      const raw = settingsData.faviconUrl;
+      link.href = raw.startsWith('/') || raw.startsWith('http') ? raw : `/${raw}`;
     }
   }, [settingsData?.faviconUrl]);
 
