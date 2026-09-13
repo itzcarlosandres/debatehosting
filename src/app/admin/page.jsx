@@ -2812,21 +2812,45 @@ export default function AdminPage() {
                       </td>
                       <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{c.clicks}</td>
                       <td style={{ textAlign: 'right' }}>
-                        <button
-                          onClick={async () => {
-                            try {
-                              await authFetch(`/api/admin/coupons/${c.id}`, { method: 'DELETE' });
-                              setCoupons((prev) => prev.filter((item) => item.id !== c.id));
-                              toast.success('Cupón eliminado.');
-                            } catch (e) {
-                              toast.error('Error al eliminar cupón.');
-                            }
-                          }}
-                          className="btn btn-secondary btn-sm"
-                          style={{ color: 'var(--red-accent)' }}
-                        >
-                          <Icon name="trash" size={13} />
-                        </button>
+                        <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingCoupon(c);
+                              setCouponForm({
+                                code: c.code || '',
+                                discount: c.discount || '',
+                                condition: c.condition || '',
+                                providerId: c.providerId || (providers[0]?.id || ''),
+                                expiresAt: c.expiresAt ? new Date(c.expiresAt).toISOString().split('T')[0] : '',
+                                verified: c.verified ?? true,
+                              });
+                              setCouponModalOpen(true);
+                            }}
+                            className="btn btn-secondary btn-sm"
+                            title="Editar cupón"
+                          >
+                            <Icon name="edit" size={13} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              if (!confirm(`¿Eliminar el cupón ${c.code}?`)) return;
+                              try {
+                                await authFetch(`/api/admin/coupons/${c.id}`, { method: 'DELETE' });
+                                setCoupons((prev) => prev.filter((item) => item.id !== c.id));
+                                toast.success('Cupón eliminado.');
+                              } catch (e) {
+                                toast.error('Error al eliminar cupón.');
+                              }
+                            }}
+                            className="btn btn-secondary btn-sm"
+                            style={{ color: 'var(--red-accent)' }}
+                            title="Eliminar cupón"
+                          >
+                            <Icon name="trash" size={13} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -2834,13 +2858,13 @@ export default function AdminPage() {
               </table>
             </div>
 
-            {/* Modal Crear Cupón */}
+            {/* Modal Crear / Editar Cupón */}
             {couponModalOpen && (
               <div className="modal-overlay">
                 <div className="modal-dialog">
                   <div className="modal-header">
-                    <h3>Nuevo Cupón</h3>
-                    <button onClick={() => setCouponModalOpen(false)}>
+                    <h3>{editingCoupon ? `Editar Cupón: ${editingCoupon.code}` : 'Nuevo Cupón'}</h3>
+                    <button type="button" onClick={() => { setCouponModalOpen(false); setEditingCoupon(null); }}>
                       <Icon name="close" size={20} />
                     </button>
                   </div>
@@ -2848,15 +2872,24 @@ export default function AdminPage() {
                     onSubmit={async (e) => {
                       e.preventDefault();
                       try {
-                        await authFetch('/api/admin/coupons', {
-                          method: 'POST',
-                          body: JSON.stringify(couponForm),
-                        });
-                        toast.success('Cupón creado.');
+                        if (editingCoupon) {
+                          await authFetch(`/api/admin/coupons/${editingCoupon.id}`, {
+                            method: 'PUT',
+                            body: JSON.stringify(couponForm),
+                          });
+                          toast.success('Cupón actualizado correctamente.');
+                        } else {
+                          await authFetch('/api/admin/coupons', {
+                            method: 'POST',
+                            body: JSON.stringify(couponForm),
+                          });
+                          toast.success('Cupón creado.');
+                        }
                         setCouponModalOpen(false);
+                        setEditingCoupon(null);
                         loadCurrentData();
                       } catch (err) {
-                        toast.error(err.message);
+                        toast.error(err.message || 'Error al guardar cupón.');
                       }
                     }}
                     style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
@@ -2920,12 +2953,38 @@ export default function AdminPage() {
                       />
                     </div>
 
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                      <div>
+                        <label style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: '0.72rem', textTransform: 'uppercase', marginBottom: '0.3rem' }}>
+                          Fecha de Caducidad (Opcional)
+                        </label>
+                        <input
+                          type="date"
+                          value={couponForm.expiresAt || ''}
+                          onChange={(e) => setCouponForm({ ...couponForm, expiresAt: e.target.value })}
+                          className="input-editorial"
+                          style={{ width: '100%' }}
+                        />
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', paddingTop: '1.2rem' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}>
+                          <input
+                            type="checkbox"
+                            checked={Boolean(couponForm.verified)}
+                            onChange={(e) => setCouponForm({ ...couponForm, verified: e.target.checked })}
+                            style={{ accentColor: 'var(--green-primary)', width: '16px', height: '16px' }}
+                          />
+                          <span>Cupón Verificado</span>
+                        </label>
+                      </div>
+                    </div>
+
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.8rem', marginTop: '1rem' }}>
-                      <button type="button" onClick={() => setCouponModalOpen(false)} className="btn btn-secondary">
+                      <button type="button" onClick={() => { setCouponModalOpen(false); setEditingCoupon(null); }} className="btn btn-secondary">
                         Cancelar
                       </button>
                       <button type="submit" className="btn btn-primary">
-                        Guardar Cupón
+                        {editingCoupon ? 'Guardar Cambios' : 'Crear Cupón'}
                       </button>
                     </div>
                   </form>

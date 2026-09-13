@@ -86,18 +86,6 @@ export const Header = ({ settings: initialSettings }) => {
         <nav className="nav-desktop">
           <ul className="nav-links">
             <li>
-              <a href="/#elegidos" className="nav-link">
-                <Icon name="trophy" size={15} />
-                <span>El Podio</span>
-              </a>
-            </li>
-            <li>
-              <a href="/#ofertas" className="nav-link">
-                <Icon name="server" size={15} />
-                <span>Ofertas</span>
-              </a>
-            </li>
-            <li>
               <a href="/#balanza" className="nav-link">
                 <Icon name="scale" size={15} />
                 <span>La Balanza</span>
@@ -143,30 +131,6 @@ export const Header = ({ settings: initialSettings }) => {
 
           <nav className="mobile-nav-list">
             <a 
-              href="/#elegidos" 
-              className="mobile-nav-item" 
-              onClick={() => setMobileOpen(false)}
-            >
-              <span className="mobile-nav-icon">
-                <Icon name="trophy" size={16} color="#0E6B41" />
-              </span>
-              <span className="mobile-nav-num">01</span>
-              <span className="mobile-nav-title">El Podio Editorial</span>
-              <span className="mobile-nav-arrow">→</span>
-            </a>
-            <a 
-              href="/#ofertas" 
-              className="mobile-nav-item" 
-              onClick={() => setMobileOpen(false)}
-            >
-              <span className="mobile-nav-icon">
-                <Icon name="server" size={16} color="#0E6B41" />
-              </span>
-              <span className="mobile-nav-num">02</span>
-              <span className="mobile-nav-title">Ofertas de Hosting</span>
-              <span className="mobile-nav-arrow">→</span>
-            </a>
-            <a 
               href="/#balanza" 
               className="mobile-nav-item" 
               onClick={() => setMobileOpen(false)}
@@ -174,23 +138,10 @@ export const Header = ({ settings: initialSettings }) => {
               <span className="mobile-nav-icon">
                 <Icon name="scale" size={16} color="#0E6B41" />
               </span>
-              <span className="mobile-nav-num">03</span>
+              <span className="mobile-nav-num">01</span>
               <span className="mobile-nav-title">La Balanza Interactiva</span>
               <span className="mobile-nav-arrow">→</span>
             </a>
-            <Link 
-              href="/cupones" 
-              className="mobile-nav-item" 
-              onClick={() => setMobileOpen(false)}
-            >
-              <span className="mobile-nav-icon">
-                <Icon name="ticket" size={16} color="#0E6B41" />
-              </span>
-              <span className="mobile-nav-num">04</span>
-              <span className="mobile-nav-title">Cupones Verificados</span>
-              <span className="ticker-hot-pill" style={{ marginLeft: 'auto', marginRight: '0.6rem' }}>ACTIVOS</span>
-              <span className="mobile-nav-arrow">→</span>
-            </Link>
             <Link 
               href="/proveedores" 
               className="mobile-nav-item" 
@@ -199,8 +150,21 @@ export const Header = ({ settings: initialSettings }) => {
               <span className="mobile-nav-icon">
                 <Icon name="globe" size={16} color="#0E6B41" />
               </span>
-              <span className="mobile-nav-num">05</span>
+              <span className="mobile-nav-num">02</span>
               <span className="mobile-nav-title">Directorio Proveedores</span>
+              <span className="mobile-nav-arrow">→</span>
+            </Link>
+            <Link 
+              href="/cupones" 
+              className="mobile-nav-item" 
+              onClick={() => setMobileOpen(false)}
+            >
+              <span className="mobile-nav-icon">
+                <Icon name="ticket" size={16} color="#0E6B41" />
+              </span>
+              <span className="mobile-nav-num">03</span>
+              <span className="mobile-nav-title">Cupones Verificados</span>
+              <span className="ticker-hot-pill" style={{ marginLeft: 'auto', marginRight: '0.6rem' }}>ACTIVOS</span>
               <span className="mobile-nav-arrow">→</span>
             </Link>
           </nav>
