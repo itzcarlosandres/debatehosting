@@ -134,7 +134,7 @@ export default async function HomePage() {
             },
             aggregateRating: {
               '@type': 'AggregateRating',
-              ratingValue: (p.provider?.scoreRendimiento ? p.provider.scoreRendimiento / 10 : 9.5).toFixed(1),
+              ratingValue: (p.provider?.scoreRendimiento || 9.5).toFixed(1),
               bestRating: '10',
               worstRating: '1',
               ratingCount: 35,
