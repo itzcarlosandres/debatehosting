@@ -102,6 +102,12 @@ export const Header = ({ settings: initialSettings }) => {
               </a>
             </li>
             <li>
+              <Link href="/proveedores" className="nav-link">
+                <Icon name="globe" size={15} />
+                <span>Proveedores</span>
+              </Link>
+            </li>
+            <li>
               <Link href="/cupones" className="nav-link">
                 <Icon name="ticket" size={15} />
                 <span>Cupones</span>
@@ -181,6 +187,18 @@ export const Header = ({ settings: initialSettings }) => {
               <span className="mobile-nav-num">04</span>
               <span className="mobile-nav-title">Cupones Verificados</span>
               <span className="ticker-hot-pill" style={{ marginLeft: 'auto', marginRight: '0.6rem' }}>ACTIVOS</span>
+              <span className="mobile-nav-arrow">→</span>
+            </Link>
+            <Link 
+              href="/proveedores" 
+              className="mobile-nav-item" 
+              onClick={() => setMobileOpen(false)}
+            >
+              <span className="mobile-nav-icon">
+                <Icon name="globe" size={16} color="#0E6B41" />
+              </span>
+              <span className="mobile-nav-num">05</span>
+              <span className="mobile-nav-title">Directorio Proveedores</span>
               <span className="mobile-nav-arrow">→</span>
             </Link>
           </nav>

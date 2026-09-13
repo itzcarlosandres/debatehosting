@@ -297,6 +297,7 @@ export async function POST(request) {
       recommendations = provs.map((p) => ({
         id: p.id,
         name: p.name,
+        slug: p.slug,
         logoUrl: p.logoUrl,
         plan: p.plan,
         priceFrom: p.priceFrom,

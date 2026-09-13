@@ -19,6 +19,12 @@ export default async function sitemap() {
       priority: 0.9,
     },
     {
+      url: `${baseUrl}/proveedores`,
+      lastModified: now,
+      changeFrequency: 'daily',
+      priority: 0.95,
+    },
+    {
       url: `${baseUrl}/cupones`,
       lastModified: now,
       changeFrequency: 'daily',
@@ -67,5 +73,23 @@ export default async function sitemap() {
     console.error('Error generando sitemap dinámico para categorías:', error);
   }
 
-  return [...staticRoutes, ...categoryRoutes];
+  // Rutas dinámicas por proveedores activos
+  let providerRoutes = [];
+  try {
+    const providers = await prisma.provider.findMany({
+      where: { active: true },
+      select: { slug: true, updatedAt: true },
+    });
+
+    providerRoutes = providers.map((p) => ({
+      url: `${baseUrl}/proveedores/${encodeURIComponent(p.slug)}`,
+      lastModified: p.updatedAt || now,
+      changeFrequency: 'daily',
+      priority: 0.9,
+    }));
+  } catch (error) {
+    console.error('Error generando sitemap dinámico para proveedores:', error);
+  }
+
+  return [...staticRoutes, ...categoryRoutes, ...providerRoutes];
 }

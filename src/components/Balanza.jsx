@@ -235,7 +235,7 @@ export const Balanza = ({ providers = [] }) => {
                         </td>
                         <td>
                           <a
-                            href={prov.affiliateUrl}
+                            href={prov.slug ? `/go/${prov.slug}` : prov.affiliateUrl}
                             target="_blank"
                             rel="sponsored noopener noreferrer"
                             onClick={() => handleOfferClick(prov)}

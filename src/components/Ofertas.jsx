@@ -248,7 +248,7 @@ export const Ofertas = ({ providers = [] }) => {
                     </td>
                     <td style={{ textAlign: 'right' }}>
                       <a
-                        href={prov.affiliateUrl}
+                        href={prov.slug ? `/go/${prov.slug}` : prov.affiliateUrl}
                         target="_blank"
                         rel="sponsored noopener noreferrer"
                         onClick={() => handleProviderLinkClick(prov)}

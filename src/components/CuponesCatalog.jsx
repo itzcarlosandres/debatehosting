@@ -441,7 +441,7 @@ export const CuponesCatalog = ({ providers = [] }) => {
                     </button>
 
                     <a
-                      href={prov?.affiliateUrl}
+                      href={prov?.slug ? `/go/${prov.slug}?c=${coupon.id}` : prov?.affiliateUrl}
                       target="_blank"
                       rel="sponsored noopener noreferrer"
                       onClick={() => handleGoToOffer(coupon)}
@@ -523,7 +523,7 @@ export const CuponesCatalog = ({ providers = [] }) => {
 
                     {isUnlocked && (
                       <a
-                        href={prov?.affiliateUrl}
+                        href={prov?.slug ? `/go/${prov.slug}?c=${coupon.id}` : prov?.affiliateUrl}
                         target="_blank"
                         rel="sponsored noopener noreferrer"
                         onClick={() => handleGoToOffer(coupon)}

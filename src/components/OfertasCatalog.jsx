@@ -569,7 +569,7 @@ export const OfertasCatalog = ({ providers = [] }) => {
                     )}
 
                     <a
-                      href={prov.affiliateUrl}
+                      href={prov.slug ? `/go/${prov.slug}` : prov.affiliateUrl}
                       target="_blank"
                       rel="sponsored noopener noreferrer"
                       onClick={() => handleProviderClick(prov)}
@@ -738,7 +738,7 @@ export const OfertasCatalog = ({ providers = [] }) => {
                       </td>
                       <td style={{ textAlign: 'right' }}>
                         <a
-                          href={prov.affiliateUrl}
+                          href={prov.slug ? `/go/${prov.slug}` : prov.affiliateUrl}
                           target="_blank"
                           rel="sponsored noopener noreferrer"
                           onClick={() => handleProviderClick(prov)}

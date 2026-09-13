@@ -488,7 +488,7 @@ export const ServerAuditor = ({ isCompact = false }) => {
                       </div>
 
                       <a
-                        href={rec.affiliateUrl}
+                        href={rec.slug ? `/go/${rec.slug}` : rec.affiliateUrl}
                         target="_blank"
                         rel="sponsored noopener noreferrer"
                         className="btn btn-primary btn-sm"

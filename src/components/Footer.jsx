@@ -96,6 +96,12 @@ export const Footer = () => {
                 </Link>
               </li>
               <li>
+                <Link href="/proveedores" className="footer-link">
+                  <span className="link-bullet">›</span>
+                  <span>Directorio de Proveedores</span>
+                </Link>
+              </li>
+              <li>
                 <Link href="/ofertas" className="footer-link">
                   <span className="link-bullet">›</span>
                   <span>Catálogo Completo 2026</span>

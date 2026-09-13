@@ -185,7 +185,7 @@ export const Elegidos = ({ picks = [] }) => {
 
           <div className="podio-cta-box">
             <a
-              href={prov.affiliateUrl}
+              href={prov.slug ? `/go/${prov.slug}` : prov.affiliateUrl}
               target="_blank"
               rel="sponsored noopener noreferrer"
               onClick={() => handleClaimOffer(prov)}
@@ -247,7 +247,7 @@ export const Elegidos = ({ picks = [] }) => {
                 </div>
                 {extra.provider && (
                   <a
-                    href={extra.provider.affiliateUrl}
+                    href={extra.provider.slug ? `/go/${extra.provider.slug}` : extra.provider.affiliateUrl}
                     target="_blank"
                     rel="sponsored noopener noreferrer"
                     onClick={() => handleClaimOffer(extra.provider)}

@@ -885,30 +885,122 @@ export default function AdminPage() {
               </button>
             </div>
 
-            <div className="metrics-grid">
-              <div className="metric-card">
-                <div className="title">Clics Totales Afiliados</div>
+            <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', marginBottom: '1.2rem' }}>
+              <div className="metric-card" style={{ borderLeft: '4px solid var(--green-primary)' }}>
+                <div className="title">⚡ Clics de Hoy (24h)</div>
+                <div className="value" style={{ color: 'var(--green-primary)' }}>{stats?.clicksHoy || 0}</div>
+              </div>
+              <div className="metric-card" style={{ borderLeft: '4px solid #D97706' }}>
+                <div className="title">📅 Últimos 7 Días</div>
+                <div className="value">{stats?.clicks7dias || 0}</div>
+              </div>
+              <div className="metric-card" style={{ borderLeft: '4px solid #2563EB' }}>
+                <div className="title">📈 Últimos 30 Días</div>
+                <div className="value">{stats?.clicks30dias || 0}</div>
+              </div>
+              <div className="metric-card" style={{ borderLeft: '4px solid var(--text-ink)' }}>
+                <div className="title">🌐 Histórico Total</div>
                 <div className="value">{stats?.clicksTotales || 0}</div>
-              </div>
-              <div className="metric-card">
-                <div className="title">Clics en Últimos 7 Días</div>
-                <div className="value" style={{ color: 'var(--green-primary)' }}>
-                  {stats?.clicks7dias || 0}
-                </div>
-              </div>
-              <div className="metric-card">
-                <div className="title">Suscriptores Newsletter</div>
-                <div className="value">{stats?.suscriptores || 0}</div>
-              </div>
-              <div className="metric-card">
-                <div className="title">Cupones Verificados Activos</div>
-                <div className="value">{stats?.cuponesActivos || 0}</div>
               </div>
             </div>
 
-            <div className="admin-table-card">
-              <div className="admin-table-card-header">
-                <h3 style={{ fontSize: '1.25rem' }}>Top Proveedores por Tráfico de Afiliados</h3>
+            <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', marginBottom: '1.5rem' }}>
+              <div className="metric-card" style={{ padding: '1rem' }}>
+                <div className="title" style={{ fontSize: '0.78rem' }}>🔗 Salidas a Hosting (/go/)</div>
+                <div className="value" style={{ fontSize: '1.4rem' }}>{stats?.clicsRedireccion || 0}</div>
+              </div>
+              <div className="metric-card" style={{ padding: '1rem' }}>
+                <div className="title" style={{ fontSize: '0.78rem' }}>🎟️ Copias de Cupón</div>
+                <div className="value" style={{ fontSize: '1.4rem' }}>{stats?.clicsCupones || 0}</div>
+              </div>
+              <div className="metric-card" style={{ padding: '1rem' }}>
+                <div className="title" style={{ fontSize: '0.78rem' }}>📬 Suscriptores Newsletter</div>
+                <div className="value" style={{ fontSize: '1.4rem' }}>{stats?.suscriptores || 0}</div>
+              </div>
+              <div className="metric-card" style={{ padding: '1rem' }}>
+                <div className="title" style={{ fontSize: '0.78rem' }}>🏷️ Cupones Verificados</div>
+                <div className="value" style={{ fontSize: '1.4rem' }}>{stats?.cuponesActivos || 0}</div>
+              </div>
+            </div>
+
+            {/* Gráfico de barras de tendencia últimos 7 días */}
+            <div className="admin-table-card" style={{ marginBottom: '1.5rem' }}>
+              <div className="admin-table-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ fontSize: '1.15rem' }}>📊 Actividad Diaria de Clics (Últimos 7 Días)</h3>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  Total 7 días: <strong>{stats?.clicks7dias || 0}</strong> clics
+                </span>
+              </div>
+              <div style={{ padding: '1.5rem' }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'flex-end',
+                  justifyContent: 'space-between',
+                  gap: '0.75rem',
+                  height: '140px',
+                  paddingTop: '20px',
+                  borderBottom: isDark ? '1px solid #383025' : '1px solid var(--border-ink)'
+                }}>
+                  {(stats?.clicksDailyTrend || []).map((day) => {
+                    const maxTrend = Math.max(
+                      ...(stats?.clicksDailyTrend?.map((x) => x.total) || [1]),
+                      5
+                    );
+                    const barHeightPct = Math.max(Math.round((day.total / maxTrend) * 100), 4);
+                    return (
+                      <div
+                        key={day.date}
+                        style={{
+                          flex: 1,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          height: '100%',
+                          justifyContent: 'flex-end',
+                          gap: '0.4rem'
+                        }}
+                      >
+                        <span style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          color: day.total > 0 ? (isDark ? 'var(--green-bright)' : 'var(--green-primary)') : 'var(--text-light)'
+                        }}>
+                          {day.total}
+                        </span>
+                        <div
+                          style={{
+                            width: '100%',
+                            maxWidth: '42px',
+                            height: `${barHeightPct}%`,
+                            backgroundColor: day.total > 0 ? (isDark ? 'var(--green-bright)' : 'var(--green-primary)') : (isDark ? '#2B251D' : 'rgba(23,20,15,0.08)'),
+                            borderRadius: '3px 3px 0 0',
+                            transition: 'height 0.4s ease',
+                          }}
+                          title={`${day.date}: ${day.total} clics (${day.redirects} enlaces, ${day.coupons} cupones)`}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem', marginTop: '0.5rem' }}>
+                  {(stats?.clicksDailyTrend || []).map((day) => (
+                    <div key={day.date} style={{ flex: 1, textAlign: 'center' }}>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                        {day.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="admin-table-card" style={{ marginBottom: '1.5rem' }}>
+              <div className="admin-table-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ fontSize: '1.15rem' }}>🏆 Top Proveedores por Tráfico de Afiliados</h3>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  Enlaces Limpios (/go/[slug])
+                </span>
               </div>
               <div style={{ padding: '1.5rem' }}>
                 {(stats?.clicksPorProveedor || []).map((p) => {
@@ -916,14 +1008,35 @@ export default function AdminPage() {
                     ...(stats?.clicksPorProveedor?.map((x) => x.clicks) || [1]),
                     1
                   );
+                  const totalC = stats?.clicksTotales || 1;
                   const pct = Math.round((p.clicks / maxC) * 100);
+                  const sharePct = Math.round((p.clicks / totalC) * 100);
                   return (
                     <div key={p.id} style={{ marginBottom: '1.2rem' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-mono)', fontSize: '0.85rem', marginBottom: '0.35rem' }}>
-                        <span style={{ fontWeight: 600 }}>{p.name}</span>
-                        <span>{p.clicks} clics</span>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: 'var(--font-mono)', fontSize: '0.85rem', marginBottom: '0.35rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                          <span style={{ fontWeight: 600 }}>{p.name}</span>
+                          <a
+                            href={`/go/${p.slug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              fontSize: '0.72rem',
+                              color: 'var(--green-primary)',
+                              textDecoration: 'underline',
+                              opacity: 0.85
+                            }}
+                            title="Probar redirección limpia /go/[slug]"
+                          >
+                            /go/{p.slug}
+                          </a>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{sharePct}% del total</span>
+                          <span style={{ fontWeight: 700 }}>{p.clicks} clics</span>
+                        </div>
                       </div>
-                      <div style={{ height: '10px', backgroundColor: isDark ? '#2B251D' : 'rgba(23,20,15,0.08)', border: isDark ? '1px solid #383025' : '1px solid var(--border-ink)', position: 'relative', overflow: 'hidden' }}>
+                      <div style={{ height: '10px', backgroundColor: isDark ? '#2B251D' : 'rgba(23,20,15,0.08)', border: isDark ? '1px solid #383025' : '1px solid var(--border-ink)', position: 'relative', overflow: 'hidden', borderRadius: '2px' }}>
                         <div style={{ height: '100%', width: `${Math.max(pct, 2)}%`, backgroundColor: isDark ? 'var(--green-bright)' : 'var(--green-primary)', transition: 'width 0.4s ease' }}></div>
                       </div>
                     </div>
@@ -953,10 +1066,27 @@ export default function AdminPage() {
                       </td>
                       <td>
                         <span className={`badge-tag ${ev.type === 'coupon_copy' ? 'badge-hot' : 'badge-green'}`}>
-                          {ev.type === 'coupon_copy' ? 'Copia Cupón' : 'Enlace Afiliado'}
+                          {ev.type === 'coupon_copy' ? 'Copia Cupón' : ev.type === 'coupon_link' ? 'Cupón + Enlace' : 'Redirección /go/'}
                         </span>
                       </td>
-                      <td style={{ fontWeight: 600 }}>{ev.provider?.name || '—'}</td>
+                      <td style={{ fontWeight: 600 }}>
+                        {ev.provider ? (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                            <span>{ev.provider.name}</span>
+                            {ev.provider.slug && (
+                              <a
+                                href={`/go/${ev.provider.slug}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ fontSize: '0.72rem', color: 'var(--green-primary)' }}
+                                title="Ver redirección"
+                              >
+                                ↗
+                              </a>
+                            )}
+                          </span>
+                        ) : '—'}
+                      </td>
                       <td style={{ fontFamily: 'var(--font-mono)' }}>{ev.coupon?.code || '—'}</td>
                     </tr>
                   ))}

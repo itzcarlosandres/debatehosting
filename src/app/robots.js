@@ -13,6 +13,8 @@ export default function robots() {
           '/api/admin/',
           '/api/auth',
           '/api/auth/',
+          '/go',
+          '/go/',
         ],
       },
     ],
