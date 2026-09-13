@@ -1,7 +1,9 @@
 import prisma from '@/lib/prisma';
+import { getSettings } from '@/lib/settings';
 
 export default async function sitemap() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://debatehosting.com';
+  const settings = getSettings();
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || settings?.siteUrl || 'https://debatehosting.com').replace(/\/+$/, '');
   const now = new Date();
 
   // Páginas estáticas principales
