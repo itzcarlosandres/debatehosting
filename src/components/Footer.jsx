@@ -1,11 +1,38 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Icon } from './Icon';
+import { normalizeImageUrl } from '@/lib/imageHelper';
 
-export const Footer = () => {
+export const Footer = ({ settings: initialSettings }) => {
   const currentYear = new Date().getFullYear();
+  const [branding, setBranding] = useState(
+    initialSettings || {
+      logoType: 'icon_text',
+      logoIcon: 'rocket',
+      logoTextPrefix: 'Debate',
+      logoTextHighlight: 'hosting',
+      logoColor: '#0E6B41',
+      logoUrl: '',
+      siteName: 'Debatehosting',
+    }
+  );
+
+  useEffect(() => {
+    if (initialSettings) {
+      setBranding((prev) => ({ ...prev, ...initialSettings }));
+    } else {
+      fetch('/api/public/settings', { cache: 'no-store' })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && !data.error) {
+            setBranding((prev) => ({ ...prev, ...data }));
+          }
+        })
+        .catch(() => {});
+    }
+  }, [initialSettings]);
 
   const scrollToTop = () => {
     if (typeof window !== 'undefined') {
@@ -36,11 +63,49 @@ export const Footer = () => {
         <div className="footer-grid">
           {/* Columna 1: Marca & Misión Editorial */}
           <div className="footer-col-brand">
-            <Link href="/" className="footer-logo">
-              <div className="footer-logo-icon">
-                <Icon name="scale" size={22} color="#FFFFFF" />
-              </div>
-              <span className="footer-brand-title">Debatehosting</span>
+            <Link href="/" className="footer-logo" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.65rem', textDecoration: 'none' }}>
+              {branding.logoType === 'image' && branding.logoUrl ? (
+                <img
+                  src={normalizeImageUrl(branding.logoUrl)}
+                  alt={branding.siteName || 'Debatehosting'}
+                  style={{ maxHeight: '34px', maxWidth: '170px', objectFit: 'contain' }}
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = '/logo.svg';
+                  }}
+                />
+              ) : branding.logoType === 'text' ? (
+                <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', fontWeight: 800, color: '#FAF7EE' }}>
+                  {branding.logoTextPrefix || 'Debate'}
+                  <span style={{ color: branding.logoColor || '#0E6B41' }}>
+                    {branding.logoTextHighlight || 'hosting'}
+                  </span>
+                </span>
+              ) : (
+                <>
+                  <div
+                    className="footer-logo-icon"
+                    style={{
+                      backgroundColor: branding.logoColor || '#0E6B41',
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                    }}
+                  >
+                    <Icon name={branding.logoIcon || 'rocket'} size={20} color="#FFFFFF" />
+                  </div>
+                  <span className="footer-brand-title">
+                    {branding.logoTextPrefix || 'Debate'}
+                    <span style={{ color: branding.logoColor || '#0E6B41' }}>
+                      {branding.logoTextHighlight || 'hosting'}
+                    </span>
+                  </span>
+                </>
+              )}
               <span className="footer-brand-pill">EDITORIAL</span>
             </Link>
 

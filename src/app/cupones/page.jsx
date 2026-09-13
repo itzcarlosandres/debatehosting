@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma';
+import { getSettings } from '@/lib/settings';
 import { Ticker } from '@/components/Ticker';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -17,6 +18,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function CuponesPage() {
   const now = new Date();
+  const settings = getSettings();
 
   // Consultar proveedores activos que tengan cupones o catálogo de cupones
   const [rawProviders, tickerItems] = await Promise.all([
@@ -132,11 +134,11 @@ export default async function CuponesPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <Ticker items={tickerItems} />
-      <Header />
+      <Header settings={settings} />
       <main>
         <CuponesCatalog providers={providers} />
       </main>
-      <Footer />
+      <Footer settings={settings} />
     </div>
   );
 }

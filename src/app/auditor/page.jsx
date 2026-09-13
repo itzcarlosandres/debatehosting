@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma';
 import Link from 'next/link';
+import { getSettings } from '@/lib/settings';
 import { Ticker } from '@/components/Ticker';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -18,11 +19,12 @@ export const metadata = {
 export const dynamic = 'force-dynamic';
 
 export default async function AuditorPage() {
+  const settings = getSettings();
   const tickerItems = await prisma.tickerItem.findMany({
     orderBy: { order: 'asc' },
   });
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://debatehosting.com';
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || settings?.siteUrl || 'https://debatehosting.com').replace(/\/+$/, '');
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -100,7 +102,7 @@ export default async function AuditorPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <Ticker items={tickerItems} />
-      <Header />
+      <Header settings={settings} />
       <main>
         <div className="container" style={{ paddingTop: '2.5rem', paddingBottom: '4rem' }}>
           {/* Breadcrumb editorial */}
@@ -118,7 +120,7 @@ export default async function AuditorPage() {
           </div>
         </div>
       </main>
-      <Footer />
+      <Footer settings={settings} />
     </div>
   );
 }

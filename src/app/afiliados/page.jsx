@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma';
 import Link from 'next/link';
+import { getSettings } from '@/lib/settings';
 import { Ticker } from '@/components/Ticker';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -15,6 +16,7 @@ export const metadata = {
 export const dynamic = 'force-dynamic';
 
 export default async function AfiliadosPage() {
+  const settings = getSettings();
   const tickerItems = await prisma.tickerItem.findMany({
     orderBy: { order: 'asc' },
   });
@@ -22,7 +24,7 @@ export default async function AfiliadosPage() {
   return (
     <div className="home-layout">
       <Ticker items={tickerItems} />
-      <Header />
+      <Header settings={settings} />
       <main style={{ padding: '3.5rem 0 5rem' }}>
         <div className="container" style={{ maxWidth: '840px' }}>
           {/* Breadcrumb */}
@@ -81,7 +83,7 @@ export default async function AfiliadosPage() {
           </div>
         </div>
       </main>
-      <Footer />
+      <Footer settings={settings} />
     </div>
   );
 }

@@ -162,7 +162,7 @@ export default async function HomePage() {
         <Cupones providers={providers} />
         <News />
       </main>
-      <Footer />
+      <Footer settings={settings} />
     </div>
   );
 }

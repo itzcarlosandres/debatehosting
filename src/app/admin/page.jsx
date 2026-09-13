@@ -981,9 +981,12 @@ export default function AdminPage() {
             {/* Gráfico de barras de tendencia últimos 7 días */}
             <div className="admin-table-card" style={{ marginBottom: '1.5rem' }}>
               <div className="admin-table-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 style={{ fontSize: '1.15rem' }}>📊 Actividad Diaria de Clics (Últimos 7 Días)</h3>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  Total 7 días: <strong>{stats?.clicks7dias || 0}</strong> clics
+                <h3 style={{ fontSize: '1.15rem', fontFamily: 'var(--font-serif)', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '0.45rem', color: isDark ? '#FAF7EE' : 'var(--text-ink)' }}>
+                  <span>📊</span>
+                  <span>Actividad Diaria de Clics (Últimos 7 Días)</span>
+                </h3>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: isDark ? '#9E9687' : 'var(--text-muted)' }}>
+                  Total 7 días: <strong style={{ color: isDark ? 'var(--green-bright)' : 'var(--green-primary)' }}>{stats?.clicks7dias || 0}</strong> clics
                 </span>
               </div>
               <div style={{ padding: '1.5rem' }}>
@@ -1041,7 +1044,7 @@ export default function AdminPage() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem', marginTop: '0.5rem' }}>
                   {(stats?.clicksDailyTrend || []).map((day) => (
                     <div key={day.date} style={{ flex: 1, textAlign: 'center' }}>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: isDark ? '#9E9687' : 'var(--text-muted)' }}>
                         {day.label}
                       </span>
                     </div>
@@ -1052,8 +1055,11 @@ export default function AdminPage() {
 
             <div className="admin-table-card" style={{ marginBottom: '1.5rem' }}>
               <div className="admin-table-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 style={{ fontSize: '1.15rem' }}>🏆 Top Proveedores por Tráfico de Afiliados</h3>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                <h3 style={{ fontSize: '1.15rem', fontFamily: 'var(--font-serif)', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '0.45rem', color: isDark ? '#FAF7EE' : 'var(--text-ink)' }}>
+                  <span>🏆</span>
+                  <span>Top Proveedores por Tráfico de Afiliados</span>
+                </h3>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: isDark ? '#9E9687' : 'var(--text-muted)' }}>
                   Enlaces Limpios (/go/[slug])
                 </span>
               </div>
@@ -1070,16 +1076,16 @@ export default function AdminPage() {
                     <div key={p.id} style={{ marginBottom: '1.2rem' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: 'var(--font-mono)', fontSize: '0.85rem', marginBottom: '0.35rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                          <span style={{ fontWeight: 600 }}>{p.name}</span>
+                          <span style={{ fontWeight: 600, color: isDark ? '#FAF7EE' : 'var(--text-ink)' }}>{p.name}</span>
                           <a
                             href={`/go/${p.slug}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             style={{
                               fontSize: '0.72rem',
-                              color: 'var(--green-primary)',
+                              color: isDark ? 'var(--green-bright)' : 'var(--green-primary)',
                               textDecoration: 'underline',
-                              opacity: 0.85
+                              opacity: 0.9,
                             }}
                             title="Probar redirección limpia /go/[slug]"
                           >
@@ -1087,8 +1093,8 @@ export default function AdminPage() {
                           </a>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{sharePct}% del total</span>
-                          <span style={{ fontWeight: 700 }}>{p.clicks} clics</span>
+                          <span style={{ fontSize: '0.75rem', color: isDark ? '#9E9687' : 'var(--text-muted)' }}>{sharePct}% del total</span>
+                          <span style={{ fontWeight: 700, color: isDark ? '#FAF7EE' : 'var(--text-ink)' }}>{p.clicks} clics</span>
                         </div>
                       </div>
                       <div style={{ height: '10px', backgroundColor: isDark ? '#2B251D' : 'rgba(23,20,15,0.08)', border: isDark ? '1px solid #383025' : '1px solid var(--border-ink)', position: 'relative', overflow: 'hidden', borderRadius: '2px' }}>
@@ -1097,12 +1103,23 @@ export default function AdminPage() {
                     </div>
                   );
                 })}
+                {(!stats?.clicksPorProveedor || stats.clicksPorProveedor.length === 0) && (
+                  <div style={{ textAlign: 'center', color: isDark ? '#9E9687' : 'var(--text-muted)', padding: '1rem 0', fontSize: '0.85rem' }}>
+                    Aún no hay proveedores registrados o clics acumulados.
+                  </div>
+                )}
               </div>
             </div>
 
             <div className="admin-table-card">
-              <div className="admin-table-card-header">
-                <h3 style={{ fontSize: '1.25rem' }}>Últimos Clics y Conversiones Registradas</h3>
+              <div className="admin-table-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ fontSize: '1.15rem', fontFamily: 'var(--font-serif)', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '0.45rem', color: isDark ? '#FAF7EE' : 'var(--text-ink)' }}>
+                  <span>⚡</span>
+                  <span>Últimos Clics y Conversiones Registradas</span>
+                </h3>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: isDark ? '#9E9687' : 'var(--text-muted)' }}>
+                  Telemetría en Vivo
+                </span>
               </div>
               <table className="admin-table">
                 <thead>

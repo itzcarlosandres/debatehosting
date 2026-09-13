@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma';
+import { getSettings } from '@/lib/settings';
 import { Ticker } from '@/components/Ticker';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -17,6 +18,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function OfertasPage() {
   const now = new Date();
+  const settings = getSettings();
 
   // Consultar todos los proveedores activos y titulares desde la base de datos
   const [rawProviders, tickerItems] = await Promise.all([
@@ -124,11 +126,11 @@ export default async function OfertasPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <Ticker items={tickerItems} />
-      <Header />
+      <Header settings={settings} />
       <main>
         <OfertasCatalog providers={providers} />
       </main>
-      <Footer />
+      <Footer settings={settings} />
     </div>
   );
 }

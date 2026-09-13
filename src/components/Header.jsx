@@ -19,8 +19,10 @@ export const Header = ({ settings: initialSettings }) => {
   );
 
   useEffect(() => {
-    if (!initialSettings) {
-      fetch('/api/public/settings')
+    if (initialSettings) {
+      setBranding((prev) => ({ ...prev, ...initialSettings }));
+    } else {
+      fetch('/api/public/settings', { cache: 'no-store' })
         .then((res) => res.json())
         .then((data) => {
           if (data && !data.error) {

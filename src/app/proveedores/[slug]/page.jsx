@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import prisma from '@/lib/prisma';
+import { getSettings } from '@/lib/settings';
 import { Ticker } from '@/components/Ticker';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -32,7 +33,8 @@ export async function generateMetadata({ params }) {
     };
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://debatehosting.com';
+  const settings = getSettings();
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || settings?.siteUrl || 'https://debatehosting.com').replace(/\/+$/, '');
 
   const finalTitle = provider.metaTitle || `${provider.name} Hosting: Opiniones, Análisis y Descuentos (2026)`;
   const finalDesc = provider.metaDescription || `Análisis técnico y opiniones de ${provider.name} en 2026. Prueba de velocidad TTFB, plan ${provider.plan} desde $${provider.priceFrom}/${provider.period} y disponibilidad del ${provider.uptime}%.`;
@@ -57,6 +59,8 @@ export default async function ProveedorDetailPage({ params }) {
   const slug = (resolvedParams?.slug || params?.slug || '').toLowerCase().trim();
 
   if (!slug) notFound();
+
+  const settings = getSettings();
 
   const [provider, otherProviders, tickerItems] = await Promise.all([
     prisma.provider.findUnique({
@@ -93,7 +97,7 @@ export default async function ProveedorDetailPage({ params }) {
     notFound();
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://debatehosting.com';
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || settings?.siteUrl || 'https://debatehosting.com').replace(/\/+$/, '');
 
   const avgScore = (
     ((provider.scorePrecio || 8) +
@@ -174,11 +178,11 @@ export default async function ProveedorDetailPage({ params }) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <Ticker items={tickerItems} />
-      <Header />
+      <Header settings={settings} />
       <main>
         <ProveedorDetail provider={provider} otherProviders={otherProviders} />
       </main>
-      <Footer />
+      <Footer settings={settings} />
     </div>
   );
 }

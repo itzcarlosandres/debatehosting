@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma';
+import { getSettings } from '@/lib/settings';
 import { Ticker } from '@/components/Ticker';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -16,6 +17,7 @@ export const metadata = {
 export const dynamic = 'force-dynamic';
 
 export default async function ProveedoresPage() {
+  const settings = getSettings();
   const [rawProviders, categories, tickerItems] = await Promise.all([
     prisma.provider.findMany({
       where: { active: true },
@@ -35,7 +37,7 @@ export default async function ProveedoresPage() {
     }),
   ]);
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://debatehosting.com';
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || settings?.siteUrl || 'https://debatehosting.com').replace(/\/+$/, '');
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -90,11 +92,11 @@ export default async function ProveedoresPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <Ticker items={tickerItems} />
-      <Header />
+      <Header settings={settings} />
       <main>
         <ProveedoresCatalog providers={rawProviders} categories={categories} />
       </main>
-      <Footer />
+      <Footer settings={settings} />
     </div>
   );
 }
