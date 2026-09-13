@@ -8,6 +8,7 @@ export const dynamic = 'force-dynamic';
 const KNOWN_HOSTINGS = {
   alexhost: {
     name: 'Alexhost',
+    plan: 'Shared Hosting Expert NVMe',
     description:
       'Alexhost es un proveedor de alojamiento web y servidores fundado en 2008 con sede e infraestructura propia en la República de Moldavia (Chisináu). Destaca en la industria por su sólida política de privacidad, soporte para hosting offshore y servidores no gestionados con control total a nivel de raíz.\n\nDispone de su propio centro de datos ubicado en un antiguo refugio militar blindado a varios metros bajo tierra, lo que le otorga una seguridad física excepcional y protección avanzada contra ataques de denegación de servicio (DDoS de hasta 500 Gbps). Es una opción muy demandada para proyectos que requieren máxima confidencialidad, libertad de contenido y flexibilidad en métodos de pago alternativos como criptomonedas.',
     pros: [
@@ -34,6 +35,7 @@ const KNOWN_HOSTINGS = {
   },
   banahosting: {
     name: 'BanaHosting',
+    plan: 'Bana-Starter LiteSpeed NVMe',
     description:
       'BanaHosting es uno de los gigantes del alojamiento web más populares en la comunidad de habla hispana, reconocido por su excelente estabilidad y relación calidad-precio. Sus planes compartidos corren sobre servidores web LiteSpeed Enterprise con discos NVMe de última generación, lo que proporciona una velocidad de carga ultrarrápida para WordPress y tiendas WooCommerce.\n\nOfrece centros de datos tanto en Estados Unidos como en Europa, permitiendo elegir la ubicación más cercana a tu audiencia objetiva. Además, incluye panel cPanel con instalador automático, certificados SSL gratuitos e ilimitados y migración gratuita de tu sitio web.',
     pros: [
@@ -60,6 +62,7 @@ const KNOWN_HOSTINGS = {
   },
   webempresa: {
     name: 'Webempresa',
+    plan: 'Plan Mini Web WordPress NVMe',
     description:
       'Webempresa es la empresa de hosting especializada en WordPress, WooCommerce y Joomla líder en España y Latinoamérica. Famosa por la altísima calidad de su soporte técnico en español atendido exclusivamente por ingenieros especializados, y por sus sistemas propietarios de seguridad como CyberProtector y reglas anti-hackeo a nivel de servidor.\n\nSus servidores utilizan unidades SSD ultrarrápidas y están optimizados para ofrecer tiempos de carga reducidos con reglas de caché personalizadas y copias de seguridad automáticas cada 4 horas.',
     pros: [
@@ -85,6 +88,7 @@ const KNOWN_HOSTINGS = {
   },
   hostinger: {
     name: 'Hostinger',
+    plan: 'Premium Web Hosting',
     description:
       'Hostinger se ha consolidado como una de las empresas de infraestructura web de mayor crecimiento mundial gracias a una interfaz extremadamente intuitiva (hPanel) y precios de entrada muy accesibles. Cuenta con centros de datos repartidos por todo el mundo y utiliza servidores LiteSpeed para garantizar tiempos de respuesta rápidos.\n\nIncluye herramientas de inteligencia artificial para creación de páginas web, creador de logos y optimizaciones específicas para tiendas electrónicas y CMS populares.',
     pros: [
@@ -119,13 +123,14 @@ Genera un análisis completo, objetivo, profesional y optimizado para SEO para e
 
 Detalles proporcionados:
 - Nombre: ${name}
-- Plan inicial / destacado: ${plan || 'Básico o Recomendado'}
+- Plan inicial / destacado sugerido: ${plan || 'A determinar por ti: identifica el plan más popular, representativo o destacado de este hosting'}
 - Especialidad / Categoría: ${primaryCat}
 - Precio de referencia: ${priceText}
 
 Debes responder OBLIGATORIAMENTE con un objeto JSON válido (sin markdown adicional, sin comillas triples antes o después) con la siguiente estructura exacta:
 {
   "name": "${name}",
+  "plan": "Nombre comercial del plan más destacado o popular de ${name} (ej: Bana-Starter, Premium Web Hosting, Cloud NVMe Pro, etc.)",
   "description": "2 o 3 párrafos técnicos detallados sobre la historia del hosting, infraestructura, tipo de discos (NVMe/SSD), servidores (LiteSpeed, Apache, NGINX), panel de control (cPanel, panel propio, etc.), centros de datos y perfiles ideales de usuario.",
   "pros": [
     "Ventaja técnica 1",
@@ -195,6 +200,7 @@ Requisitos:
 
     return {
       name: parsed.name || name,
+      plan: parsed.plan || plan || `${name} Starter NVMe`,
       description: parsed.description || '',
       pros: Array.isArray(parsed.pros) ? parsed.pros : [],
       cons: Array.isArray(parsed.cons) ? parsed.cons : [],
@@ -263,8 +269,18 @@ export async function POST(request) {
       });
     }
 
-    // 3. Fallback: Generador editorial inteligente estructurado
-    const description = `${cleanName} es un proveedor especializado en ${primaryCat.toLowerCase()} y soluciones de infraestructura web, diseñado para ofrecer estabilidad y alto rendimiento a proyectos en línea en 2026.\n\nSu arquitectura de servidores cuenta con almacenamiento de estado sólido de alta velocidad, conectividad de baja latencia y optimización para los principales sistemas de gestión de contenido como WordPress, WooCommerce y plataformas personalizadas. Ofrece un entorno seguro con protección contra ataques y herramientas de gestión simplificadas que facilitan la administración de dominios, correos y bases de datos.\n\nCon un plan de entrada denominado "${plan || 'Básico'}" disponible desde ${priceText}, se posiciona como una alternativa competitiva tanto para nuevos emprendedores digitales como para proyectos en fase de crecimiento.`;
+    // 3. Determinar plan destacado inteligente si no se especificó
+    const smartPlan = (plan && plan.trim()) || (() => {
+      const catLower = primaryCat.toLowerCase();
+      if (catLower.includes('vps')) return `${cleanName} Cloud VPS NVMe 1`;
+      if (catLower.includes('dedicado')) return `${cleanName} Dedicated Enterprise`;
+      if (catLower.includes('wordpress')) return `${cleanName} WordPress Pro SSD`;
+      if (catLower.includes('cloud')) return `${cleanName} Cloud Starter`;
+      return `${cleanName} Starter NVMe`;
+    })();
+
+    // 4. Fallback: Generador editorial inteligente estructurado
+    const description = `${cleanName} es un proveedor especializado en ${primaryCat.toLowerCase()} y soluciones de infraestructura web, diseñado para ofrecer estabilidad y alto rendimiento a proyectos en línea en 2026.\n\nSu arquitectura de servidores cuenta con almacenamiento de estado sólido de alta velocidad, conectividad de baja latencia y optimización para los principales sistemas de gestión de contenido como WordPress, WooCommerce y plataformas personalizadas. Ofrece un entorno seguro con protección contra ataques y herramientas de gestión simplificadas que facilitan la administración de dominios, correos y bases de datos.\n\nCon un plan de entrada denominado "${smartPlan}" disponible desde ${priceText}, se posiciona como una alternativa competitiva tanto para nuevos emprendedores digitales como para proyectos en fase de crecimiento.`;
 
     const pros = [
       `Excelente relación coste-beneficio en planes de ${primaryCat}.`,
@@ -282,13 +298,14 @@ export async function POST(request) {
     const verdict = `${cleanName} es una opción equilibrada para quienes buscan desplegar páginas web, tiendas virtuales o servidores de prueba con una inversión moderada y buen respaldo técnico. Recomendado para freelancers, pequeñas empresas y desarrolladores que valoran la agilidad y una configuración sin fricciones.`;
 
     const metaTitle = `${cleanName} Hosting: Análisis, Opiniones y Descuentos (2026)`;
-    const metaDescription = `Análisis editorial completo de ${cleanName} en 2026: pruebas de velocidad, plan ${plan || 'destacado'}, características clave, pros, contras y ofertas oficiales.`;
+    const metaDescription = `Análisis editorial completo de ${cleanName} en 2026: pruebas de velocidad, plan ${smartPlan}, características clave, pros, contras y ofertas oficiales.`;
 
     return NextResponse.json({
       ok: true,
       source: 'ai_engine',
       data: {
         name: cleanName,
+        plan: smartPlan,
         description,
         pros,
         cons,

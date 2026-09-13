@@ -122,8 +122,41 @@ export default function AdminPage() {
   });
 
   const [aiGenerating, setAiGenerating] = useState(false);
+  const [generatingPlan, setGeneratingPlan] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [logoPreviewError, setLogoPreviewError] = useState(false);
+
+  const handleGeneratePlanAI = async () => {
+    if (!provForm.name || !provForm.name.trim()) {
+      toast.error('Por favor escribe primero el Nombre del Proveedor.');
+      return;
+    }
+    setGeneratingPlan(true);
+    try {
+      const res = await authFetch('/api/admin/providers/generate-ai', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: provForm.name,
+          categories: provForm.categories,
+          priceFrom: provForm.priceFrom,
+        }),
+      });
+      const resData = await res.json();
+      if (!res.ok) throw new Error(resData.error || 'Error al generar plan.');
+
+      if (resData && resData.ok && resData.data?.plan) {
+        setProvForm((prev) => ({
+          ...prev,
+          plan: resData.data.plan,
+        }));
+        toast.success(`¡Plan destacado sugerido con IA: "${resData.data.plan}"!`);
+      }
+    } catch (err) {
+      toast.error(err.message || 'Error al generar plan con IA.');
+    } finally {
+      setGeneratingPlan(false);
+    }
+  };
 
   const handleGenerateAI = async () => {
     if (!provForm.name || !provForm.name.trim()) {
@@ -150,6 +183,7 @@ export default function AdminPage() {
         setProvForm((prev) => ({
           ...prev,
           slug: prev.slug || slugify(d.name),
+          plan: d.plan || prev.plan,
           description: d.description || prev.description,
           pros: formatLines(d.pros) || prev.pros,
           cons: formatLines(d.cons) || prev.cons,
@@ -1738,9 +1772,31 @@ export default function AdminPage() {
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: '0.72rem', textTransform: 'uppercase', marginBottom: '0.3rem' }}>
-                        Plan Destacado *
-                      </label>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
+                        <label style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', textTransform: 'uppercase' }}>
+                          Plan Destacado *
+                        </label>
+                        <button
+                          type="button"
+                          disabled={generatingPlan || aiGenerating}
+                          onClick={handleGeneratePlanAI}
+                          style={{
+                            border: 'none',
+                            background: 'transparent',
+                            color: 'var(--green-primary)',
+                            fontSize: '0.7rem',
+                            fontFamily: 'var(--font-mono)',
+                            cursor: 'pointer',
+                            padding: 0,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.25rem',
+                          }}
+                          title="Generar nombre del plan con IA"
+                        >
+                          {generatingPlan ? '⏳ Generando...' : '⚡ Auto / IA'}
+                        </button>
+                      </div>
                       <input
                         type="text"
                         required
@@ -1748,6 +1804,7 @@ export default function AdminPage() {
                         onChange={(e) => setProvForm({ ...provForm, plan: e.target.value })}
                         className="input-editorial"
                         style={{ width: '100%' }}
+                        placeholder="ej: Bana-Starter, Premium Web Hosting, VPS NVMe 1..."
                       />
                     </div>
 
