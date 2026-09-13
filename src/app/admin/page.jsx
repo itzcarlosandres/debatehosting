@@ -61,6 +61,16 @@ const QUICK_BRAND_COLORS = [
   { label: 'Púrpura IA', hex: '#8B5CF6' },
 ];
 
+const slugify = (text) =>
+  (text || '')
+    .toString()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
 export default function AdminPage() {
   const [token, setToken] = useState(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
@@ -1338,22 +1348,51 @@ export default function AdminPage() {
                           type="text"
                           required
                           value={provForm.name}
-                          onChange={(e) => setProvForm({ ...provForm, name: e.target.value })}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            const shouldAutoSlug = !editingProvider || !provForm.slug || provForm.slug === slugify(provForm.name);
+                            setProvForm((prev) => ({
+                              ...prev,
+                              name: val,
+                              slug: shouldAutoSlug ? slugify(val) : prev.slug,
+                            }));
+                          }}
                           className="input-editorial"
                           style={{ width: '100%' }}
+                          placeholder="Ej: Hostinger"
                         />
                       </div>
                       <div>
-                        <label style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: '0.72rem', textTransform: 'uppercase', marginBottom: '0.3rem' }}>
-                          Slug URL *
-                        </label>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
+                          <label style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', textTransform: 'uppercase' }}>
+                            Slug URL *
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => setProvForm((prev) => ({ ...prev, slug: slugify(prev.name) }))}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              cursor: 'pointer',
+                              fontSize: '0.68rem',
+                              color: isDark ? '#46C285' : '#0E6B41',
+                              fontFamily: 'var(--font-mono)',
+                              textDecoration: 'underline',
+                              padding: 0,
+                            }}
+                            title="Regenerar slug automáticamente a partir del nombre"
+                          >
+                            ⚡ Auto
+                          </button>
+                        </div>
                         <input
                           type="text"
                           required
                           value={provForm.slug}
-                          onChange={(e) => setProvForm({ ...provForm, slug: e.target.value })}
+                          onChange={(e) => setProvForm({ ...provForm, slug: slugify(e.target.value) })}
                           className="input-editorial"
-                          style={{ width: '100%' }}
+                          style={{ width: '100%', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}
+                          placeholder="ej: hostinger"
                         />
                       </div>
                     </div>
@@ -1831,7 +1870,7 @@ export default function AdminPage() {
                         value={catForm.name}
                         onChange={(e) => {
                           const val = e.target.value;
-                          const autoSlug = !editingCat ? val.toLowerCase().trim().replace(/[^a-z0-9-_]/g, '-') : catForm.slug;
+                          const autoSlug = !editingCat ? slugify(val) : catForm.slug;
                           setCatForm({ ...catForm, name: val, slug: autoSlug });
                         }}
                         className="input-editorial"
@@ -1847,9 +1886,9 @@ export default function AdminPage() {
                         type="text"
                         required
                         value={catForm.slug}
-                        onChange={(e) => setCatForm({ ...catForm, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, '-') })}
+                        onChange={(e) => setCatForm({ ...catForm, slug: slugify(e.target.value) })}
                         className="input-editorial"
-                        style={{ width: '100%' }}
+                        style={{ width: '100%', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}
                       />
                     </div>
 
@@ -2093,7 +2132,7 @@ export default function AdminPage() {
                         value={badgeForm.label}
                         onChange={(e) => {
                           const val = e.target.value.toUpperCase();
-                          const autoSlug = !editingBadge ? val.toLowerCase().trim().replace(/[^a-z0-9-_]/g, '-') : badgeForm.slug;
+                          const autoSlug = !editingBadge ? slugify(val) : badgeForm.slug;
                           setBadgeForm({ ...badgeForm, label: val, slug: autoSlug });
                         }}
                         className="input-editorial"
@@ -2109,9 +2148,9 @@ export default function AdminPage() {
                         type="text"
                         required
                         value={badgeForm.slug}
-                        onChange={(e) => setBadgeForm({ ...badgeForm, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, '-') })}
+                        onChange={(e) => setBadgeForm({ ...badgeForm, slug: slugify(e.target.value) })}
                         className="input-editorial"
-                        style={{ width: '100%' }}
+                        style={{ width: '100%', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}
                       />
                     </div>
 
