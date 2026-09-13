@@ -56,6 +56,14 @@ export default async function sitemap() {
     },
   ];
 
+  const dbUrl = process.env.DATABASE_URL || '';
+  const isDbConfigured = dbUrl.startsWith('postgresql://') || dbUrl.startsWith('postgres://');
+  const isPlaceholder = dbUrl.includes('placeholder');
+
+  if (!isDbConfigured || isPlaceholder) {
+    return staticRoutes;
+  }
+
   // Rutas dinámicas por categorías de hosting existentes
   let categoryRoutes = [];
   try {
