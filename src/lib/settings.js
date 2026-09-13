@@ -32,6 +32,7 @@ const DEFAULT_SETTINGS = {
   // Analítica, Search Console & Inyecciones de Código
   googleAnalyticsId: '',
   googleSearchConsoleCode: '',
+  geminiApiKey: '',
   customHeadCode: '',
   customBodyCode: '',
 };

@@ -141,8 +141,11 @@ export default function AdminPage() {
           priceFrom: provForm.priceFrom,
         }),
       });
-      if (res && res.ok && res.data) {
-        const d = res.data;
+      const resData = await res.json();
+      if (!res.ok) throw new Error(resData.error || 'Error al generar contenido.');
+
+      if (resData && resData.ok && resData.data) {
+        const d = resData.data;
         const formatLines = (val) => (Array.isArray(val) ? val.join('\n') : (val || ''));
         setProvForm((prev) => ({
           ...prev,
@@ -159,7 +162,8 @@ export default function AdminPage() {
           scoreFacilidad: d.scoreFacilidad || prev.scoreFacilidad,
           uptime: d.uptime || prev.uptime,
         }));
-        toast.success(`¡Ficha editorial y SEO generados con éxito para ${d.name}!`);
+        const sourceLabel = resData.source === 'gemini_ai' ? 'Google Gemini AI' : 'Base Editorial';
+        toast.success(`¡Ficha editorial y SEO generados con éxito (${sourceLabel}) para ${d.name}!`);
       }
     } catch (err) {
       toast.error(err.message || 'Error al generar contenido con IA.');
@@ -278,6 +282,7 @@ export default function AdminPage() {
     autoVerifyCoupons: true,
     googleAnalyticsId: '',
     googleSearchConsoleCode: '',
+    geminiApiKey: '',
     customHeadCode: '',
     customBodyCode: '',
   });
@@ -1156,7 +1161,10 @@ export default function AdminPage() {
         {/* TAB 2: PROVEEDORES */}
         {activeTab === 'proveedores' && (
           <div>
-            <div className="admin-topbar">
+            {!provModalOpen ? (
+              /* LISTADO DE PROVEEDORES */
+              <div>
+                <div className="admin-topbar">
               <div>
                 <div className="kicker">CATÁLOGO EDITORIAL</div>
                 <h1>Gestión de Proveedores</h1>
@@ -1410,92 +1418,150 @@ export default function AdminPage() {
                 </table>
               </div>
             </div>
+          </div>
+        ) : (
+          /* VISTA COMPLETA EDITORIAL DE CREACIÓN / EDICIÓN (SIN POPUP) */
+          <div>
+            <div className="admin-topbar" style={{ marginBottom: '1.25rem' }}>
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setProvModalOpen(false)}
+                  className="btn btn-secondary btn-sm"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    marginBottom: '0.6rem',
+                    fontSize: '0.8rem',
+                  }}
+                >
+                  <span>← Volver al listado de proveedores</span>
+                </button>
+                <div className="kicker">
+                  {editingProvider ? 'EDICIÓN EDITORIAL DE FICHA' : 'ALTA DE NUEVO PROVEEDOR'}
+                </div>
+                <h1 style={{ margin: 0 }}>
+                  {editingProvider ? `Editar ${editingProvider.name}` : 'Nuevo Proveedor'}
+                </h1>
+              </div>
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() => setProvModalOpen(false)}
+                  className="btn btn-secondary"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  form="provider-editorial-form"
+                  className="btn btn-primary"
+                >
+                  Guardar Proveedor
+                </button>
+              </div>
+            </div>
 
-            {/* Modal Crear/Editar Proveedor */}
-            {provModalOpen && (
-              <div className="modal-overlay">
-                <div className="modal-dialog">
-                  <div className="modal-header">
-                    <h3>{editingProvider ? `Editar ${editingProvider.name}` : 'Nuevo Proveedor'}</h3>
-                    <button onClick={() => setProvModalOpen(false)}>
-                      <Icon name="close" size={20} />
-                    </button>
-                  </div>
-                  <form
-                    onSubmit={async (e) => {
-                      e.preventDefault();
-                      try {
-                        if (editingProvider) {
-                          await authFetch(`/api/admin/providers/${editingProvider.id}`, {
-                            method: 'PUT',
-                            body: JSON.stringify(provForm),
-                          });
-                          toast.success('Proveedor actualizado.');
-                        } else {
-                          await authFetch('/api/admin/providers', {
-                            method: 'POST',
-                            body: JSON.stringify(provForm),
-                          });
-                          toast.success('Proveedor añadido.');
-                        }
-                        setProvModalOpen(false);
-                        loadCurrentData();
-                      } catch (err) {
-                        toast.error(err.message || 'Error al guardar.');
-                      }
-                    }}
-                    style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
-                  >
-                    {/* Asistente IA Generador de Ficha y SEO */}
+            <div
+              className="admin-table-card"
+              style={{
+                padding: '1.75rem 2rem',
+                backgroundColor: isDark ? '#14120E' : '#FFFFFF',
+                border: isDark ? '1.5px solid #2B251D' : '1.5px solid var(--border-ink)',
+              }}
+            >
+              <form
+                id="provider-editorial-form"
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  try {
+                    if (editingProvider) {
+                      await authFetch(`/api/admin/providers/${editingProvider.id}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(provForm),
+                      });
+                      toast.success('Proveedor actualizado.');
+                    } else {
+                      await authFetch('/api/admin/providers', {
+                        method: 'POST',
+                        body: JSON.stringify(provForm),
+                      });
+                      toast.success('Proveedor añadido.');
+                    }
+                    setProvModalOpen(false);
+                    loadCurrentData();
+                  } catch (err) {
+                    toast.error(err.message || 'Error al guardar.');
+                  }
+                }}
+                style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}
+              >
+                {/* Asistente IA Generador de Ficha y SEO con Google Gemini */}
+                <div
+                  style={{
+                    backgroundColor: isDark ? '#1C2E24' : '#E8F5EE',
+                    border: `1.5px solid ${isDark ? '#2E5940' : '#86EFAC'}`,
+                    padding: '1rem 1.25rem',
+                    borderRadius: 'var(--radius-sm)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '1rem',
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  <div>
                     <div
                       style={{
-                        backgroundColor: isDark ? '#1C2E24' : '#E8F5EE',
-                        border: `1.5px solid ${isDark ? '#2E5940' : '#86EFAC'}`,
-                        padding: '0.85rem 1rem',
-                        borderRadius: 'var(--radius-sm)',
+                        fontWeight: 700,
+                        fontSize: '0.95rem',
+                        color: isDark ? '#46C285' : '#0E6B41',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: '1rem',
-                        flexWrap: 'wrap',
+                        gap: '0.5rem',
                       }}
                     >
-                      <div>
-                        <div
-                          style={{
-                            fontWeight: 700,
-                            fontSize: '0.9rem',
-                            color: isDark ? '#46C285' : '#0E6B41',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.4rem',
-                          }}
-                        >
-                          <Icon name="bot" size={16} />
-                          <span>Asistente IA: Generador Editorial & SEO</span>
-                        </div>
-                        <span style={{ fontSize: '0.78rem', color: isDark ? '#A3D9BE' : '#1E5839' }}>
-                          Ingresa el nombre del proveedor y genera con IA la descripción, pros, contras, veredicto y metadatos SEO.
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleGenerateAI}
-                        disabled={aiGenerating || !provForm.name}
-                        className="btn btn-primary btn-sm"
+                      <Icon name="sparkles" size={17} />
+                      <span>Asistente IA: Generador Editorial & SEO (Google Gemini)</span>
+                      <span
                         style={{
-                          backgroundColor: '#0E6B41',
-                          borderColor: '#0E6B41',
-                          opacity: aiGenerating || !provForm.name ? 0.6 : 1,
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '0.4rem',
+                          fontSize: '0.68rem',
+                          fontFamily: 'var(--font-mono)',
+                          padding: '0.15rem 0.45rem',
+                          borderRadius: '3px',
+                          backgroundColor: settingsData.geminiApiKey ? '#0E6B41' : (isDark ? '#2E5940' : '#86EFAC'),
+                          color: settingsData.geminiApiKey ? '#fff' : (isDark ? '#46C285' : '#1E5839'),
+                          fontWeight: 700,
                         }}
                       >
-                        <Icon name={aiGenerating ? 'clock' : 'zap'} size={14} color="#fff" />
-                        <span>{aiGenerating ? 'Generando contenido...' : '⚡ Generar Ficha y SEO con IA'}</span>
-                      </button>
+                        {settingsData.geminiApiKey ? '✨ Gemini AI Conectado' : '⚡ Motor IA Editorial'}
+                      </span>
                     </div>
+                    <span style={{ fontSize: '0.8rem', color: isDark ? '#A3D9BE' : '#1E5839', display: 'block', marginTop: '0.2rem' }}>
+                      Escribe el nombre del proveedor y genera con Google Gemini IA la ficha completa: análisis técnico, pros, contras, veredicto y SEO.
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleGenerateAI}
+                    disabled={aiGenerating || !provForm.name}
+                    className="btn btn-primary btn-sm"
+                    style={{
+                      backgroundColor: '#0E6B41',
+                      borderColor: '#0E6B41',
+                      opacity: aiGenerating || !provForm.name ? 0.6 : 1,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      padding: '0.6rem 1.1rem',
+                      fontSize: '0.85rem',
+                    }}
+                  >
+                    <Icon name={aiGenerating ? 'clock' : 'zap'} size={15} color="#fff" />
+                    <span>{aiGenerating ? 'Generando con Gemini IA...' : '⚡ Generar Ficha y SEO con IA'}</span>
+                  </button>
+                </div>
 
                     {/* Logo / Ícono del Proveedor */}
                     <div>
@@ -2117,9 +2183,9 @@ export default function AdminPage() {
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.8rem', marginTop: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.8rem', marginTop: '1.5rem', paddingTop: '1rem', borderTop: isDark ? '1px solid #2B251D' : '1px solid rgba(23,20,15,0.1)' }}>
                       <button type="button" onClick={() => setProvModalOpen(false)} className="btn btn-secondary">
-                        Cancelar
+                        Volver / Cancelar
                       </button>
                       <button type="submit" className="btn btn-primary">
                         Guardar Proveedor
@@ -4398,6 +4464,23 @@ export default function AdminPage() {
                   />
                   <span className="settings-hint">
                     ID de medición oficial de GA4. Cargará el script gtag.js de Google Tag Manager de manera asíncrona y optimizada.
+                  </span>
+                </div>
+
+                <div className="settings-field" style={{ marginTop: '0.8rem' }}>
+                  <label className="settings-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <Icon name="sparkles" size={14} color={isDark ? '#46C285' : '#0E6B41'} />
+                    <span>Google Gemini API Key (IA para Generación de Fichas y SEO)</span>
+                  </label>
+                  <input
+                    type="password"
+                    className="settings-input"
+                    placeholder="AIzaSy..."
+                    value={settingsData.geminiApiKey || ''}
+                    onChange={(e) => setSettingsData({ ...settingsData, geminiApiKey: e.target.value })}
+                  />
+                  <span className="settings-hint">
+                    Clave de API de Google AI Studio (Gemini 1.5 / 2.0 Flash) para generar fichas de proveedores, análisis editorial, pros/contras y metadatos SEO. También puedes definirla en la variable de entorno <code>GEMINI_API_KEY</code>.
                   </span>
                 </div>
 

@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { verifyAdminRequest } from '@/lib/auth';
+import { getSettings } from '@/lib/settings';
 
 export const dynamic = 'force-dynamic';
 
-// Base de conocimiento especializado de hosting
+// Base de conocimiento especializado de hosting (fallback inmediato y de alta precisión)
 const KNOWN_HOSTINGS = {
   alexhost: {
     name: 'Alexhost',
@@ -109,6 +110,109 @@ const KNOWN_HOSTINGS = {
   },
 };
 
+/**
+ * Invoca la API de Google Gemini para redactar la ficha editorial completa y optimizaciones SEO
+ */
+async function callGeminiApi({ apiKey, name, plan, primaryCat, priceText }) {
+  const prompt = `Eres un auditor técnico, analista editorial y consultor SEO experto en infraestructura web, hosting y servidores en español.
+Genera un análisis completo, objetivo, profesional y optimizado para SEO para el proveedor de hosting "${name}".
+
+Detalles proporcionados:
+- Nombre: ${name}
+- Plan inicial / destacado: ${plan || 'Básico o Recomendado'}
+- Especialidad / Categoría: ${primaryCat}
+- Precio de referencia: ${priceText}
+
+Debes responder OBLIGATORIAMENTE con un objeto JSON válido (sin markdown adicional, sin comillas triples antes o después) con la siguiente estructura exacta:
+{
+  "name": "${name}",
+  "description": "2 o 3 párrafos técnicos detallados sobre la historia del hosting, infraestructura, tipo de discos (NVMe/SSD), servidores (LiteSpeed, Apache, NGINX), panel de control (cPanel, panel propio, etc.), centros de datos y perfiles ideales de usuario.",
+  "pros": [
+    "Ventaja técnica 1",
+    "Ventaja técnica 2",
+    "Ventaja técnica 3",
+    "Ventaja técnica 4",
+    "Ventaja técnica 5"
+  ],
+  "cons": [
+    "Desventaja o límite a tener en cuenta 1",
+    "Desventaja o límite a tener en cuenta 2"
+  ],
+  "verdict": "Veredicto editorial final de 1 párrafo sintetizando para qué tipo de proyectos o presupuestos se recomienda.",
+  "metaTitle": "${name}: Análisis, Opiniones y Descuentos (2026)",
+  "metaDescription": "Meta descripción SEO de 140 a 155 caracteres optimizada con palabras clave y llamada a la acción.",
+  "scoreRendimiento": 9.2,
+  "scoreSoporte": 9.0,
+  "scorePrecio": 9.3,
+  "scoreFacilidad": 9.1,
+  "uptime": 99.95
+}
+
+Requisitos:
+- Las puntuaciones numéricas (scoreRendimiento, scoreSoporte, scorePrecio, scoreFacilidad) deben ser números decimales entre 7.0 y 9.9.
+- El uptime debe ser un número entre 99.80 y 99.99.
+- El tono debe ser profesional, periodístico, honesto y en español neutro.`;
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 20000);
+
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey.trim()}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [{ text: prompt }],
+          },
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          responseMimeType: 'application/json',
+        },
+      }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      const errBody = await res.text();
+      console.warn('Gemini API returned error status:', res.status, errBody);
+      return null;
+    }
+
+    const data = await res.json();
+    const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!rawText) return null;
+
+    // Limpiar posibles bloques markdown si Gemini los incluye
+    const cleanJson = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+    const parsed = JSON.parse(cleanJson);
+
+    return {
+      name: parsed.name || name,
+      description: parsed.description || '',
+      pros: Array.isArray(parsed.pros) ? parsed.pros : [],
+      cons: Array.isArray(parsed.cons) ? parsed.cons : [],
+      verdict: parsed.verdict || '',
+      metaTitle: parsed.metaTitle || `${name}: Análisis y Opiniones (2026)`,
+      metaDescription: parsed.metaDescription || '',
+      scoreRendimiento: parseFloat(parsed.scoreRendimiento) || 9.1,
+      scoreSoporte: parseFloat(parsed.scoreSoporte) || 9.0,
+      scorePrecio: parseFloat(parsed.scorePrecio) || 9.2,
+      scoreFacilidad: parseFloat(parsed.scoreFacilidad) || 9.0,
+      uptime: parseFloat(parsed.uptime) || 99.95,
+    };
+  } catch (err) {
+    console.error('Error al invocar Gemini API:', err.message);
+    return null;
+  }
+}
+
 export async function POST(request) {
   const admin = await verifyAdminRequest(request);
   if (!admin) {
@@ -124,8 +228,33 @@ export async function POST(request) {
     }
 
     const key = cleanName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const parsedCats = Array.isArray(categories) ? categories : [categories || 'Hosting Web'];
+    const primaryCat = parsedCats[0] || 'Hosting Web';
+    const priceText = priceFrom ? `$${parseFloat(priceFrom).toFixed(2)}` : 'precios muy asequibles';
 
-    // 1. Si existe en la base de conocimiento específica
+    // 1. Verificar si hay Gemini API Key configurada (en Settings o en .env)
+    const settings = getSettings();
+    const apiKey = (process.env.GEMINI_API_KEY || settings.geminiApiKey || '').trim();
+
+    if (apiKey) {
+      const geminiResult = await callGeminiApi({
+        apiKey,
+        name: cleanName,
+        plan,
+        primaryCat,
+        priceText,
+      });
+
+      if (geminiResult) {
+        return NextResponse.json({
+          ok: true,
+          source: 'gemini_ai',
+          data: geminiResult,
+        });
+      }
+    }
+
+    // 2. Si existe en la base de conocimiento local específica (Alexhost, BanaHosting, etc.)
     if (KNOWN_HOSTINGS[key]) {
       return NextResponse.json({
         ok: true,
@@ -134,11 +263,7 @@ export async function POST(request) {
       });
     }
 
-    // 2. Generador inteligente por categorías y tipo
-    const parsedCats = Array.isArray(categories) ? categories : [categories || 'Hosting Web'];
-    const primaryCat = parsedCats[0] || 'Hosting Web';
-    const priceText = priceFrom ? `$${parseFloat(priceFrom).toFixed(2)}` : 'precios muy asequibles';
-
+    // 3. Fallback: Generador editorial inteligente estructurado
     const description = `${cleanName} es un proveedor especializado en ${primaryCat.toLowerCase()} y soluciones de infraestructura web, diseñado para ofrecer estabilidad y alto rendimiento a proyectos en línea en 2026.\n\nSu arquitectura de servidores cuenta con almacenamiento de estado sólido de alta velocidad, conectividad de baja latencia y optimización para los principales sistemas de gestión de contenido como WordPress, WooCommerce y plataformas personalizadas. Ofrece un entorno seguro con protección contra ataques y herramientas de gestión simplificadas que facilitan la administración de dominios, correos y bases de datos.\n\nCon un plan de entrada denominado "${plan || 'Básico'}" disponible desde ${priceText}, se posiciona como una alternativa competitiva tanto para nuevos emprendedores digitales como para proyectos en fase de crecimiento.`;
 
     const pros = [
