@@ -34,6 +34,23 @@ export async function PUT(request, { params }) {
     if (body.badge !== undefined) dataToUpdate.badge = body.badge ? body.badge.trim() : null;
     if (body.badgeColor !== undefined) dataToUpdate.badgeColor = body.badgeColor ? body.badgeColor.trim() : null;
 
+    const formatList = (val) => {
+      if (!val) return null;
+      if (Array.isArray(val)) return JSON.stringify(val);
+      if (typeof val === 'string') {
+        const lines = val.split('\n').map((l) => l.trim()).filter(Boolean);
+        return JSON.stringify(lines);
+      }
+      return null;
+    };
+
+    if (body.description !== undefined) dataToUpdate.description = body.description ? body.description.trim() : null;
+    if (body.pros !== undefined) dataToUpdate.pros = formatList(body.pros);
+    if (body.cons !== undefined) dataToUpdate.cons = formatList(body.cons);
+    if (body.verdict !== undefined) dataToUpdate.verdict = body.verdict ? body.verdict.trim() : null;
+    if (body.metaTitle !== undefined) dataToUpdate.metaTitle = body.metaTitle ? body.metaTitle.trim() : null;
+    if (body.metaDescription !== undefined) dataToUpdate.metaDescription = body.metaDescription ? body.metaDescription.trim() : null;
+
     const updated = await prisma.provider.update({
       where: { id },
       data: dataToUpdate,

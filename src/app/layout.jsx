@@ -3,6 +3,10 @@ import { ToastProvider } from '../context/ToastContext';
 import { getSettings } from '@/lib/settings';
 import { CustomCodeInjector } from '@/components/CustomCodeInjector';
 
+import { normalizeImageUrl } from '@/lib/imageHelper';
+
+export const dynamic = 'force-dynamic';
+
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://debatehosting.com';
 
 function getFaviconMime(url) {
@@ -18,10 +22,8 @@ function getFaviconMime(url) {
 
 export async function generateMetadata() {
   const settings = getSettings();
-  const rawFavicon = settings.faviconUrl || '/favicon.svg';
-  const cleanFavicon = rawFavicon.startsWith('/') || rawFavicon.startsWith('http')
-    ? rawFavicon
-    : `/${rawFavicon}`;
+  const rawFavicon = settings.faviconUrl || '/favicon.ico';
+  const cleanFavicon = normalizeImageUrl(rawFavicon);
   const version = settings.updatedAt ? new Date(settings.updatedAt).getTime() : Date.now();
   const faviconWithVersion = cleanFavicon.includes('?') ? cleanFavicon : `${cleanFavicon}?v=${version}`;
   const isCustomFavicon = Boolean(
@@ -138,10 +140,8 @@ export async function generateMetadata() {
 
 export default function RootLayout({ children }) {
   const settings = getSettings();
-  const rawFavicon = settings.faviconUrl || '/favicon.svg';
-  const cleanFavicon = rawFavicon.startsWith('/') || rawFavicon.startsWith('http')
-    ? rawFavicon
-    : `/${rawFavicon}`;
+  const rawFavicon = settings.faviconUrl || '/favicon.ico';
+  const cleanFavicon = normalizeImageUrl(rawFavicon);
   const version = settings.updatedAt ? new Date(settings.updatedAt).getTime() : Date.now();
   const faviconWithVersion = cleanFavicon.includes('?') ? cleanFavicon : `${cleanFavicon}?v=${version}`;
   const isCustomFavicon = Boolean(
@@ -151,10 +151,10 @@ export default function RootLayout({ children }) {
   );
   const rawIcon = settings.iconUrl;
   const cleanIcon = rawIcon
-    ? (rawIcon.startsWith('/') || rawIcon.startsWith('http') ? rawIcon : `/${rawIcon}`)
+    ? normalizeImageUrl(rawIcon)
     : faviconWithVersion || '/apple-touch-icon.png';
   const icon = cleanIcon;
-  const mimeType = getFaviconMime(rawFavicon);
+  const mimeType = getFaviconMime(cleanFavicon);
   const cleanGsc = (settings.googleSearchConsoleCode || '')
     .replace(/<meta[^>]+content=["']([^"']+)["'][^>]*>/i, '$1')
     .trim();

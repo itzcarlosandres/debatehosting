@@ -113,10 +113,60 @@ export default function AdminPage() {
     active: true,
     badge: '',
     badgeColor: 'green',
+    description: '',
+    pros: '',
+    cons: '',
+    verdict: '',
+    metaTitle: '',
+    metaDescription: '',
   });
 
+  const [aiGenerating, setAiGenerating] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [logoPreviewError, setLogoPreviewError] = useState(false);
+
+  const handleGenerateAI = async () => {
+    if (!provForm.name || !provForm.name.trim()) {
+      toast.error('Por favor escribe primero el Nombre del Proveedor (ej. Alexhost, BanaHosting, etc.)');
+      return;
+    }
+    setAiGenerating(true);
+    try {
+      const res = await authFetch('/api/admin/providers/generate-ai', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: provForm.name,
+          plan: provForm.plan,
+          categories: provForm.categories,
+          priceFrom: provForm.priceFrom,
+        }),
+      });
+      if (res && res.ok && res.data) {
+        const d = res.data;
+        const formatLines = (val) => (Array.isArray(val) ? val.join('\n') : (val || ''));
+        setProvForm((prev) => ({
+          ...prev,
+          slug: prev.slug || slugify(d.name),
+          description: d.description || prev.description,
+          pros: formatLines(d.pros) || prev.pros,
+          cons: formatLines(d.cons) || prev.cons,
+          verdict: d.verdict || prev.verdict,
+          metaTitle: d.metaTitle || prev.metaTitle,
+          metaDescription: d.metaDescription || prev.metaDescription,
+          scoreRendimiento: d.scoreRendimiento || prev.scoreRendimiento,
+          scoreSoporte: d.scoreSoporte || prev.scoreSoporte,
+          scorePrecio: d.scorePrecio || prev.scorePrecio,
+          scoreFacilidad: d.scoreFacilidad || prev.scoreFacilidad,
+          uptime: d.uptime || prev.uptime,
+        }));
+        toast.success(`¡Ficha editorial y SEO generados con éxito para ${d.name}!`);
+      }
+    } catch (err) {
+      toast.error(err.message || 'Error al generar contenido con IA.');
+    } finally {
+      setAiGenerating(false);
+    }
+  };
 
   const handleLogoUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -1132,6 +1182,12 @@ export default function AdminPage() {
                     active: true,
                     badge: '',
                     badgeColor: 'green',
+                    description: '',
+                    pros: '',
+                    cons: '',
+                    verdict: '',
+                    metaTitle: '',
+                    metaDescription: '',
                   });
                   setCustomCatInput('');
                   setLogoPreviewError(false);
@@ -1309,6 +1365,26 @@ export default function AdminPage() {
                                     active: p.active,
                                     badge: p.badge || '',
                                     badgeColor: p.badgeColor || 'green',
+                                    description: p.description || '',
+                                    pros: (() => {
+                                      try {
+                                        const parsed = JSON.parse(p.pros);
+                                        return Array.isArray(parsed) ? parsed.join('\n') : (p.pros || '');
+                                      } catch (e) {
+                                        return p.pros || '';
+                                      }
+                                    })(),
+                                    cons: (() => {
+                                      try {
+                                        const parsed = JSON.parse(p.cons);
+                                        return Array.isArray(parsed) ? parsed.join('\n') : (p.cons || '');
+                                      } catch (e) {
+                                        return p.cons || '';
+                                      }
+                                    })(),
+                                    verdict: p.verdict || '',
+                                    metaTitle: p.metaTitle || '',
+                                    metaDescription: p.metaDescription || '',
                                   });
                                   setCustomCatInput('');
                                   setLogoPreviewError(false);
@@ -1370,6 +1446,57 @@ export default function AdminPage() {
                     }}
                     style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
                   >
+                    {/* Asistente IA Generador de Ficha y SEO */}
+                    <div
+                      style={{
+                        backgroundColor: isDark ? '#1C2E24' : '#E8F5EE',
+                        border: `1.5px solid ${isDark ? '#2E5940' : '#86EFAC'}`,
+                        padding: '0.85rem 1rem',
+                        borderRadius: 'var(--radius-sm)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '1rem',
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      <div>
+                        <div
+                          style={{
+                            fontWeight: 700,
+                            fontSize: '0.9rem',
+                            color: isDark ? '#46C285' : '#0E6B41',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.4rem',
+                          }}
+                        >
+                          <Icon name="bot" size={16} />
+                          <span>Asistente IA: Generador Editorial & SEO</span>
+                        </div>
+                        <span style={{ fontSize: '0.78rem', color: isDark ? '#A3D9BE' : '#1E5839' }}>
+                          Ingresa el nombre del proveedor y genera con IA la descripción, pros, contras, veredicto y metadatos SEO.
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleGenerateAI}
+                        disabled={aiGenerating || !provForm.name}
+                        className="btn btn-primary btn-sm"
+                        style={{
+                          backgroundColor: '#0E6B41',
+                          borderColor: '#0E6B41',
+                          opacity: aiGenerating || !provForm.name ? 0.6 : 1,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.4rem',
+                        }}
+                      >
+                        <Icon name={aiGenerating ? 'clock' : 'zap'} size={14} color="#fff" />
+                        <span>{aiGenerating ? 'Generando contenido...' : '⚡ Generar Ficha y SEO con IA'}</span>
+                      </button>
+                    </div>
+
                     {/* Logo / Ícono del Proveedor */}
                     <div>
                       <label style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: '0.72rem', textTransform: 'uppercase', marginBottom: '0.4rem', color: isDark ? '#9E9687' : 'var(--text-muted)' }}>
@@ -1806,6 +1933,186 @@ export default function AdminPage() {
                           onChange={(e) => setProvForm({ ...provForm, affiliateUrl: e.target.value })}
                           className="input-editorial"
                           style={{ width: '100%' }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* SECCIÓN EDITORIAL: INFORMACIÓN DEL PROVEEDOR */}
+                    <div
+                      style={{
+                        backgroundColor: isDark ? '#1C1914' : '#FAF7EE',
+                        border: `1.5px solid ${isDark ? '#383025' : 'var(--border-ink)'}`,
+                        borderRadius: 'var(--radius-sm)',
+                        padding: '1.25rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '1rem',
+                        marginTop: '0.5rem',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <Icon name="server" size={16} color={isDark ? '#46C285' : '#0E6B41'} />
+                          <h4 style={{ margin: 0, fontFamily: 'var(--font-serif)', fontSize: '1rem' }}>
+                            Información Editorial y Ficha Técnica
+                          </h4>
+                        </div>
+                        <span
+                          style={{
+                            fontSize: '0.72rem',
+                            fontFamily: 'var(--font-mono)',
+                            color: isDark ? '#46C285' : '#0E6B41',
+                            fontWeight: 700,
+                          }}
+                        >
+                          PÁGINA PÚBLICA (/proveedores/[slug])
+                        </span>
+                      </div>
+
+                      {/* Descripción de la Empresa */}
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.35rem' }}>
+                          <label style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', textTransform: 'uppercase', color: isDark ? '#9E9687' : 'var(--text-muted)' }}>
+                            Descripción Completa de la Empresa *
+                          </label>
+                          <span style={{ fontSize: '0.7rem', color: isDark ? '#9E9687' : 'var(--text-light)' }}>
+                            Historia, tecnología, servidores y centro de datos
+                          </span>
+                        </div>
+                        <textarea
+                          rows={4}
+                          value={provForm.description}
+                          onChange={(e) => setProvForm({ ...provForm, description: e.target.value })}
+                          placeholder="Escribe la descripción de la empresa o usa el botón '⚡ Generar con IA' arriba..."
+                          className="input-editorial"
+                          style={{ width: '100%', resize: 'vertical', lineHeight: 1.5 }}
+                        />
+                      </div>
+
+                      {/* Pros y Contras en 2 columnas */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.35rem' }}>
+                            <label style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', textTransform: 'uppercase', color: '#16A34A' }}>
+                              ✓ Puntos Fuertes (Pros)
+                            </label>
+                            <span style={{ fontSize: '0.68rem', color: isDark ? '#9E9687' : 'var(--text-light)' }}>
+                              1 por línea
+                            </span>
+                          </div>
+                          <textarea
+                            rows={3}
+                            value={provForm.pros}
+                            onChange={(e) => setProvForm({ ...provForm, pros: e.target.value })}
+                            placeholder="Servidores LiteSpeed ultrarrápidos&#10;Soporte 24/7 en español&#10;Discos NVMe de alta velocidad"
+                            className="input-editorial"
+                            style={{ width: '100%', resize: 'vertical' }}
+                          />
+                        </div>
+
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.35rem' }}>
+                            <label style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', textTransform: 'uppercase', color: '#DC2626' }}>
+                              ⚠️ Aspectos a Considerar (Contras)
+                            </label>
+                            <span style={{ fontSize: '0.68rem', color: isDark ? '#9E9687' : 'var(--text-light)' }}>
+                              1 por línea
+                            </span>
+                          </div>
+                          <textarea
+                            rows={3}
+                            value={provForm.cons}
+                            onChange={(e) => setProvForm({ ...provForm, cons: e.target.value })}
+                            placeholder="Renovación a precio estándar&#10;Límite de buzones en plan básico"
+                            className="input-editorial"
+                            style={{ width: '100%', resize: 'vertical' }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Veredicto Editorial */}
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.35rem' }}>
+                          <label style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', textTransform: 'uppercase', color: isDark ? '#9E9687' : 'var(--text-muted)' }}>
+                            Veredicto Editorial (¿Para quién se recomienda?)
+                          </label>
+                        </div>
+                        <textarea
+                          rows={2}
+                          value={provForm.verdict}
+                          onChange={(e) => setProvForm({ ...provForm, verdict: e.target.value })}
+                          placeholder="Recomendado especialmente para blogs de WordPress, tiendas WooCommerce y proyectos que requieran..."
+                          className="input-editorial"
+                          style={{ width: '100%', resize: 'vertical', lineHeight: 1.5 }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* SECCIÓN SEO: METADATOS Y BÚSQUEDA */}
+                    <div
+                      style={{
+                        backgroundColor: isDark ? '#1C1914' : '#FAF7EE',
+                        border: `1.5px solid ${isDark ? '#383025' : 'var(--border-ink)'}`,
+                        borderRadius: 'var(--radius-sm)',
+                        padding: '1.25rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.85rem',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <Icon name="globe" size={16} color={isDark ? '#46C285' : '#0E6B41'} />
+                          <h4 style={{ margin: 0, fontFamily: 'var(--font-serif)', fontSize: '1rem' }}>
+                            Optimización SEO para Google
+                          </h4>
+                        </div>
+                        <span
+                          style={{
+                            fontSize: '0.72rem',
+                            fontFamily: 'var(--font-mono)',
+                            color: 'var(--text-muted)',
+                          }}
+                        >
+                          GOOGLE SEARCH & SOCIAL CARDS
+                        </span>
+                      </div>
+
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.35rem' }}>
+                          <label style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', textTransform: 'uppercase', color: isDark ? '#9E9687' : 'var(--text-muted)' }}>
+                            Meta Título SEO (Title Tag)
+                          </label>
+                          <span style={{ fontSize: '0.7rem', color: isDark ? '#9E9687' : 'var(--text-light)' }}>
+                            {(provForm.metaTitle || '').length}/60 caracteres
+                          </span>
+                        </div>
+                        <input
+                          type="text"
+                          value={provForm.metaTitle}
+                          onChange={(e) => setProvForm({ ...provForm, metaTitle: e.target.value })}
+                          placeholder="Ej. Alexhost Hosting: Análisis, Opiniones y Descuentos (2026)"
+                          className="input-editorial"
+                          style={{ width: '100%' }}
+                        />
+                      </div>
+
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.35rem' }}>
+                          <label style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', textTransform: 'uppercase', color: isDark ? '#9E9687' : 'var(--text-muted)' }}>
+                            Meta Descripción SEO (Snippet)
+                          </label>
+                          <span style={{ fontSize: '0.7rem', color: isDark ? '#9E9687' : 'var(--text-light)' }}>
+                            {(provForm.metaDescription || '').length}/160 caracteres
+                          </span>
+                        </div>
+                        <textarea
+                          rows={2}
+                          value={provForm.metaDescription}
+                          onChange={(e) => setProvForm({ ...provForm, metaDescription: e.target.value })}
+                          placeholder="Descripción persuasiva para los resultados de Google..."
+                          className="input-editorial"
+                          style={{ width: '100%', resize: 'vertical' }}
                         />
                       </div>
                     </div>

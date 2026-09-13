@@ -58,6 +58,12 @@ export async function POST(request) {
       active,
       badge,
       badgeColor,
+      description,
+      pros,
+      cons,
+      verdict,
+      metaTitle,
+      metaDescription,
     } = body;
 
     if (!name || !slug || !plan || priceFrom === undefined || !affiliateUrl) {
@@ -67,6 +73,16 @@ export async function POST(request) {
     const categoriesString = Array.isArray(categories)
       ? JSON.stringify(categories)
       : JSON.stringify([categories || 'hosting']);
+
+    const formatList = (val) => {
+      if (!val) return null;
+      if (Array.isArray(val)) return JSON.stringify(val);
+      if (typeof val === 'string') {
+        const lines = val.split('\n').map((l) => l.trim()).filter(Boolean);
+        return JSON.stringify(lines);
+      }
+      return null;
+    };
 
     const provider = await prisma.provider.create({
       data: {
@@ -87,6 +103,12 @@ export async function POST(request) {
         active: active !== undefined ? Boolean(active) : true,
         badge: badge ? badge.trim() : null,
         badgeColor: badgeColor ? badgeColor.trim() : null,
+        description: description ? description.trim() : null,
+        pros: formatList(pros),
+        cons: formatList(cons),
+        verdict: verdict ? verdict.trim() : null,
+        metaTitle: metaTitle ? metaTitle.trim() : null,
+        metaDescription: metaDescription ? metaDescription.trim() : null,
       },
     });
 

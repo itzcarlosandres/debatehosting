@@ -20,6 +20,8 @@ export async function generateMetadata({ params }) {
       period: true,
       uptime: true,
       active: true,
+      metaTitle: true,
+      metaDescription: true,
     },
   });
 
@@ -32,15 +34,18 @@ export async function generateMetadata({ params }) {
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://debatehosting.com';
 
+  const finalTitle = provider.metaTitle || `${provider.name} Hosting: Opiniones, Análisis y Descuentos (2026)`;
+  const finalDesc = provider.metaDescription || `Análisis técnico y opiniones de ${provider.name} en 2026. Prueba de velocidad TTFB, plan ${provider.plan} desde $${provider.priceFrom}/${provider.period} y disponibilidad del ${provider.uptime}%.`;
+
   return {
-    title: `${provider.name} Hosting: Opiniones, Análisis y Descuentos (2026)`,
-    description: `Análisis técnico y opiniones de ${provider.name} en 2026. Prueba de velocidad TTFB, plan ${provider.plan} desde $${provider.priceFrom}/${provider.period} y disponibilidad del ${provider.uptime}%.`,
+    title: finalTitle,
+    description: finalDesc,
     alternates: {
       canonical: `${baseUrl}/proveedores/${slug}`,
     },
     openGraph: {
-      title: `${provider.name}: Análisis y Opiniones 2026 | Debatehosting`,
-      description: `Evaluación de rendimiento, estabilidad del ${provider.uptime}% y ofertas oficiales para ${provider.name}.`,
+      title: finalTitle,
+      description: finalDesc,
       url: `${baseUrl}/proveedores/${slug}`,
       type: 'article',
     },

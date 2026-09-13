@@ -66,26 +66,9 @@ export function updateSettings(newSettings) {
     const updated = { ...current, ...normalized, updatedAt: new Date().toISOString() };
     fs.writeFileSync(SETTINGS_FILE, JSON.stringify(updated, null, 2), 'utf8');
 
-    // Sincronizar automáticamente el favicon en el directorio public/ si se especificó uno personalizado
-    if (newSettings.faviconUrl && typeof newSettings.faviconUrl === 'string') {
-      try {
-        const cleanPath = newSettings.faviconUrl.split('?')[0].replace(/^\//, '');
-        const sourcePath = path.join(process.cwd(), 'public', cleanPath);
-        if (fs.existsSync(sourcePath)) {
-          const publicIco = path.join(process.cwd(), 'public', 'favicon.ico');
-          fs.copyFileSync(sourcePath, publicIco);
-
-          if (cleanPath.endsWith('.svg')) {
-            const publicSvg = path.join(process.cwd(), 'public', 'favicon.svg');
-            fs.copyFileSync(sourcePath, publicSvg);
-          } else if (cleanPath.endsWith('.png')) {
-            const public32 = path.join(process.cwd(), 'public', 'favicon-32x32.png');
-            fs.copyFileSync(sourcePath, public32);
-          }
-        }
-      } catch (syncErr) {
-        console.error('Error sincronizando archivos de favicon:', syncErr);
-      }
+    // Sincronizar automáticamente el favicon en el directorio public/
+    if (updated.faviconUrl && typeof updated.faviconUrl === 'string') {
+      syncFaviconFiles(updated.faviconUrl);
     }
 
     return updated;
@@ -94,3 +77,58 @@ export function updateSettings(newSettings) {
     throw err;
   }
 }
+
+export function syncFaviconFiles(faviconUrl) {
+  if (!faviconUrl || typeof faviconUrl !== 'string') return;
+  try {
+    const cleanUrl = faviconUrl.split('?')[0];
+    const cleanRelative = cleanUrl.replace(/^\//, '');
+
+    const possibleSources = [
+      path.join(process.cwd(), 'public', cleanRelative),
+      path.join(process.cwd(), cleanRelative),
+      path.join(process.cwd(), 'prisma', cleanRelative),
+      path.join(process.cwd(), 'prisma', 'uploads', cleanRelative.replace(/^uploads[\\/]/, '')),
+      path.join(process.cwd(), 'uploads', cleanRelative.replace(/^uploads[\\/]/, '')),
+    ];
+
+    let foundSource = null;
+    for (const src of possibleSources) {
+      if (fs.existsSync(src)) {
+        foundSource = src;
+        break;
+      }
+    }
+
+    if (foundSource) {
+      const publicDir = path.join(process.cwd(), 'public');
+      if (!fs.existsSync(publicDir)) {
+        fs.mkdirSync(publicDir, { recursive: true });
+      }
+
+      const targets = [
+        path.join(publicDir, 'favicon.ico'),
+        path.join(publicDir, 'favicon-32x32.png'),
+        path.join(publicDir, 'favicon-16x16.png'),
+        path.join(publicDir, 'apple-touch-icon.png'),
+        path.join(publicDir, 'icon.png'),
+      ];
+
+      for (const target of targets) {
+        try {
+          fs.copyFileSync(foundSource, target);
+        } catch (e) {}
+      }
+
+      if (cleanUrl.endsWith('.svg')) {
+        try {
+          fs.copyFileSync(foundSource, path.join(publicDir, 'favicon.svg'));
+          fs.copyFileSync(foundSource, path.join(publicDir, 'icon.svg'));
+        } catch (e) {}
+      }
+    }
+  } catch (err) {
+    console.error('Error sincronizando favicon:', err);
+  }
+}
+

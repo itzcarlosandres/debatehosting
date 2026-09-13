@@ -34,6 +34,12 @@ model Provider {
   clicks           Int          @default(0)
   badge            String?      // ej. "HOT", "MEJOR PRECIO", "TOP RENDIMIENTO"
   badgeColor       String?      // "green" | "red" | "gold" | "dark"
+  description      String?      // Descripción completa del proveedor
+  pros             String?      // Puntos fuertes / pros
+  cons             String?      // Aspectos a considerar / contras
+  verdict          String?      // Veredicto editorial / para quién se recomienda
+  metaTitle        String?      // Título SEO personalizado
+  metaDescription  String?      // Descripción SEO personalizada
   coupons          Coupon[]
   picks            Pick[]
   clickEvents      ClickEvent[]

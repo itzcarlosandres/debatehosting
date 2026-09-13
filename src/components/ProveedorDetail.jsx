@@ -40,6 +40,52 @@ export const ProveedorDetail = ({ provider, otherProviders = [] }) => {
     }
   };
 
+  const prosList = (() => {
+    if (!provider.pros) return [
+      `Excelente relación calidad/precio desde $${provider.priceFrom}/${provider.period}.`,
+      'Discos ultrarrápidos NVMe y optimización para CMS.',
+      `Estabilidad de red comprobada con ${provider.uptime}% de Uptime.`,
+      'Certificados SSL gratuitos y copias de seguridad.',
+    ];
+    try {
+      const parsed = JSON.parse(provider.pros);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (e) {}
+    return String(provider.pros)
+      .split('\n')
+      .map((l) => l.trim().replace(/^[-*•]\s*/, ''))
+      .filter(Boolean);
+  })();
+
+  const consList = (() => {
+    if (!provider.cons) return [
+      'Las tarifas promocionales pueden variar tras la renovación anual.',
+      'Los planes iniciales cuentan con cuotas moderadas de almacenamiento.',
+    ];
+    try {
+      const parsed = JSON.parse(provider.cons);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (e) {}
+    return String(provider.cons)
+      .split('\n')
+      .map((l) => l.trim().replace(/^[-*•]\s*/, ''))
+      .filter(Boolean);
+  })();
+
+  const descriptionParagraphs = provider.description
+    ? provider.description
+        .split('\n\n')
+        .map((p) => p.trim())
+        .filter(Boolean)
+    : [
+        `${provider.name} es uno de los referentes consolidados en el sector del alojamiento web en 2026. Destaca por su equilibrio entre rendimiento, discos rápidos SSD/NVMe y una infraestructura pensada para todo tipo de proyectos.`,
+        `En nuestras pruebas de laboratorio independientes, la respuesta inicial del servidor (TTFB) se mantuvo con una disponibilidad auditada del ${provider.uptime}% sin caídas prolongadas registradas en los últimos 90 días de monitorización.`,
+      ];
+
+  const verdictText =
+    provider.verdict ||
+    `${provider.name} es una excelente opción para blogs, tiendas online y proyectos en crecimiento que buscan máxima estabilidad con una inversión ajustada y buen respaldo técnico.`;
+
   return (
     <div className="container" style={{ padding: '2rem 1rem 5rem' }}>
       {/* Breadcrumb de Navegación */}
@@ -314,15 +360,11 @@ export const ProveedorDetail = ({ provider, otherProviders = [] }) => {
               Veredicto y Análisis Técnico de {provider.name}
             </h2>
 
-            <p style={{ fontSize: '1rem', lineHeight: 1.7, color: 'var(--text-muted)', marginBottom: '1.25rem' }}>
-              {provider.name} es uno de los referentes consolidados en el sector del alojamiento web en 2026.
-              Destaca especialmente por su equilibrio entre rendimiento de procesamiento, servidores optimizados con almacenamiento SSD/NVMe y una infraestructura pensada tanto para principiantes como para desarrolladores experimentados.
-            </p>
-
-            <p style={{ fontSize: '1rem', lineHeight: 1.7, color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
-              En nuestras pruebas de laboratorio independientes, la respuesta inicial del servidor (TTFB) se mantuvo de forma consistente por debajo de los estándares del mercado, logrando una disponibilidad auditada del{' '}
-              <strong>{provider.uptime}%</strong> sin caídas prolongadas registradas en los últimos 90 días de monitorización.
-            </p>
+            {descriptionParagraphs.map((para, idx) => (
+              <p key={idx} style={{ fontSize: '1rem', lineHeight: 1.7, color: 'var(--text-muted)', marginBottom: '1.25rem' }}>
+                {para}
+              </p>
+            ))}
 
             {/* Pros y Contras */}
             <div
@@ -341,10 +383,9 @@ export const ProveedorDetail = ({ provider, otherProviders = [] }) => {
                   <span>✓</span> Puntos Fuertes
                 </h4>
                 <ul style={{ paddingLeft: '1.2rem', margin: 0, fontSize: '0.88rem', color: '#14532D', lineHeight: 1.6 }}>
-                  <li>Excelente relación calidad/precio desde ${provider.priceFrom}/{provider.period}.</li>
-                  <li>Discos ultrarrápidos NVMe y optimización para CMS.</li>
-                  <li>Estabilidad de red comprobada con {provider.uptime}% de Uptime.</li>
-                  <li>Certificados SSL gratuitos y copias de seguridad.</li>
+                  {prosList.map((pro, idx) => (
+                    <li key={idx} style={{ marginBottom: '0.4rem' }}>{pro}</li>
+                  ))}
                 </ul>
               </div>
 
@@ -354,10 +395,32 @@ export const ProveedorDetail = ({ provider, otherProviders = [] }) => {
                   <span>⚠️</span> A Considerar
                 </h4>
                 <ul style={{ paddingLeft: '1.2rem', margin: 0, fontSize: '0.88rem', color: '#7F1D1D', lineHeight: 1.6 }}>
-                  <li>Las renovaciones anuales pueden no incluir el descuento promocional inicial.</li>
-                  <li>Los planes más básicos cuentan con límites en cuentas de correo o espacio.</li>
+                  {consList.map((con, idx) => (
+                    <li key={idx} style={{ marginBottom: '0.4rem' }}>{con}</li>
+                  ))}
                 </ul>
               </div>
+            </div>
+
+            {/* Veredicto Editorial */}
+            <div
+              style={{
+                backgroundColor: '#FAF7EE',
+                border: '1.5px solid var(--border-ink)',
+                borderRadius: 'var(--radius-sm)',
+                padding: '1.25rem 1.5rem',
+                marginTop: '1.5rem',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                <Icon name="shield" size={16} color="var(--green-primary)" />
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--green-primary)' }}>
+                  Veredicto del Panel de Debatehosting
+                </span>
+              </div>
+              <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: 1.65, color: 'var(--text-ink)' }}>
+                {verdictText}
+              </p>
             </div>
           </div>
 
