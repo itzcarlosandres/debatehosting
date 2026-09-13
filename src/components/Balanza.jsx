@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Icon } from './Icon';
+import { normalizeImageUrl } from '@/lib/imageHelper';
 
 export const Balanza = ({ providers = [] }) => {
   const [weights, setWeights] = useState({
@@ -167,11 +168,16 @@ export const Balanza = ({ providers = [] }) => {
                         </td>
                         <td>
                           <div className="provider-info-cell" style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                            {prov.logoUrl && (
+                            {prov.logoUrl ? (
                               <img
-                                src={prov.logoUrl}
+                                src={normalizeImageUrl(prov.logoUrl)}
                                 alt={prov.name}
-                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                  if (e.currentTarget.nextElementSibling) {
+                                    e.currentTarget.nextElementSibling.style.display = 'flex';
+                                  }
+                                }}
                                 style={{
                                   width: '26px',
                                   height: '26px',
@@ -182,7 +188,26 @@ export const Balanza = ({ providers = [] }) => {
                                   flexShrink: 0,
                                 }}
                               />
-                            )}
+                            ) : null}
+                            <div
+                              style={{
+                                width: '26px',
+                                height: '26px',
+                                borderRadius: '3px',
+                                backgroundColor: '#FAF7EE',
+                                border: '1px solid rgba(23,20,15,0.15)',
+                                display: prov.logoUrl ? 'none' : 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                                fontWeight: 800,
+                                fontSize: '0.7rem',
+                                fontFamily: 'var(--font-serif)',
+                                color: 'var(--text-ink)',
+                              }}
+                            >
+                              {prov.name?.slice(0, 2)?.toUpperCase() || 'DH'}
+                            </div>
                             <span className="provider-name">{prov.name}</span>
                           </div>
                         </td>

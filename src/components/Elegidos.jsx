@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Icon } from './Icon';
+import { normalizeImageUrl } from '@/lib/imageHelper';
 
 export const Elegidos = ({ picks = [] }) => {
   if (!picks || picks.length === 0) return null;
@@ -51,7 +52,7 @@ export const Elegidos = ({ picks = [] }) => {
     if (prov.logoUrl) {
       return (
         <img
-          src={prov.logoUrl}
+          src={normalizeImageUrl(prov.logoUrl)}
           alt={prov.name}
           className="podio-logo-img"
           onError={(e) => {

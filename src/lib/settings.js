@@ -52,7 +52,18 @@ export function getSettings() {
 export function updateSettings(newSettings) {
   try {
     const current = getSettings();
-    const updated = { ...current, ...newSettings, updatedAt: new Date().toISOString() };
+    const normalized = { ...newSettings };
+
+    ['faviconUrl', 'logoUrl', 'iconUrl', 'ogImageUrl'].forEach((key) => {
+      if (normalized[key] && typeof normalized[key] === 'string') {
+        const val = normalized[key].trim();
+        if (val && !val.startsWith('/') && !val.startsWith('http://') && !val.startsWith('https://') && !val.startsWith('data:')) {
+          normalized[key] = `/${val}`;
+        }
+      }
+    });
+
+    const updated = { ...current, ...normalized, updatedAt: new Date().toISOString() };
     fs.writeFileSync(SETTINGS_FILE, JSON.stringify(updated, null, 2), 'utf8');
 
     // Sincronizar automáticamente el favicon en el directorio public/ si se especificó uno personalizado

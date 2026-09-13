@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { verifyAdminRequest } from '@/lib/auth';
+import { normalizeImageUrl } from '@/lib/imageHelper';
 
 export const dynamic = 'force-dynamic';
 
@@ -71,7 +72,7 @@ export async function POST(request) {
       data: {
         name: name.trim(),
         slug: slug.trim().toLowerCase(),
-        logoUrl: logoUrl ? logoUrl.trim() : null,
+        logoUrl: normalizeImageUrl(logoUrl) || null,
         categories: categoriesString,
         plan: plan.trim(),
         priceFrom: parseFloat(priceFrom),

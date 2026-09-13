@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Icon } from './Icon';
+import { normalizeImageUrl } from '@/lib/imageHelper';
 
 export const Header = ({ settings: initialSettings }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -36,9 +37,13 @@ export const Header = ({ settings: initialSettings }) => {
         <Link href="/" className="logo-brand" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.65rem', textDecoration: 'none' }}>
           {branding.logoType === 'image' && branding.logoUrl ? (
             <img
-              src={branding.logoUrl}
+              src={normalizeImageUrl(branding.logoUrl)}
               alt={branding.siteName || 'Debatehosting'}
               style={{ maxHeight: '36px', maxWidth: '180px', objectFit: 'contain' }}
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = '/logo.svg';
+              }}
             />
           ) : branding.logoType === 'text' ? (
             <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.45rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-ink)' }}>

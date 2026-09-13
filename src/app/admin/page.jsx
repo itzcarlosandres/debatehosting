@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Icon } from '@/components/Icon';
 import { useToast } from '@/context/ToastContext';
+import { normalizeImageUrl } from '@/lib/imageHelper';
 
 const AVAILABLE_CATEGORIES = [
   { id: 'hosting', label: 'Hosting web' },
@@ -123,7 +124,7 @@ export default function AdminPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error al subir la imagen.');
 
-      setProvForm((prev) => ({ ...prev, logoUrl: data.url }));
+      setProvForm((prev) => ({ ...prev, logoUrl: normalizeImageUrl(data.url) }));
       setLogoPreviewError(false);
       toast.success('Logo subido correctamente.');
     } catch (err) {
@@ -522,7 +523,7 @@ export default function AdminPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error al subir la imagen.');
 
-      setSettingsData((prev) => ({ ...prev, [key]: data.url }));
+      setSettingsData((prev) => ({ ...prev, [key]: normalizeImageUrl(data.url) }));
       toast.success('Asset visual subido correctamente.');
     } catch (err) {
       toast.error(err.message || 'Error al subir el archivo.');
@@ -1027,7 +1028,7 @@ export default function AdminPage() {
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                             {p.logoUrl ? (
                               <img
-                                src={p.logoUrl}
+                                src={normalizeImageUrl(p.logoUrl)}
                                 alt={p.name}
                                 onError={(e) => {
                                   e.currentTarget.style.display = 'none';
@@ -1259,7 +1260,7 @@ export default function AdminPage() {
                         }}>
                           {provForm.logoUrl && !logoPreviewError ? (
                             <img
-                              src={provForm.logoUrl}
+                              src={normalizeImageUrl(provForm.logoUrl)}
                               alt="Preview Logo"
                               onError={() => setLogoPreviewError(true)}
                               style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '4px' }}
@@ -2591,7 +2592,7 @@ export default function AdminPage() {
                               >
                                 {selectedEditProv.logoUrl ? (
                                   <img
-                                    src={selectedEditProv.logoUrl}
+                                    src={normalizeImageUrl(selectedEditProv.logoUrl)}
                                     alt={selectedEditProv.name}
                                     style={{ maxHeight: '30px', maxWidth: '90px', objectFit: 'contain' }}
                                   />
@@ -3553,7 +3554,7 @@ export default function AdminPage() {
                         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.65rem' }}>
                           {settingsData.logoType === 'image' && settingsData.logoUrl ? (
                             <img
-                              src={settingsData.logoUrl}
+                              src={normalizeImageUrl(settingsData.logoUrl)}
                               alt="Logo Preview Claro"
                               style={{ maxHeight: '38px', maxWidth: '220px', objectFit: 'contain' }}
                               onError={(e) => { e.currentTarget.src = '/logo.svg'; }}
@@ -3613,7 +3614,7 @@ export default function AdminPage() {
                         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.65rem' }}>
                           {settingsData.logoType === 'image' && settingsData.logoUrl ? (
                             <img
-                              src={settingsData.logoUrl}
+                              src={normalizeImageUrl(settingsData.logoUrl)}
                               alt="Logo Preview Oscuro"
                               style={{ maxHeight: '38px', maxWidth: '220px', objectFit: 'contain' }}
                               onError={(e) => { e.currentTarget.src = '/logo.svg'; }}
@@ -3699,7 +3700,7 @@ export default function AdminPage() {
                           {settingsData.faviconUrl ? (
                             <img
                               key={settingsData.faviconUrl}
-                              src={settingsData.faviconUrl}
+                              src={normalizeImageUrl(settingsData.faviconUrl)}
                               alt="Favicon"
                               style={{ width: '32px', height: '32px', objectFit: 'contain' }}
                               onError={(e) => {
@@ -3782,7 +3783,7 @@ export default function AdminPage() {
                         }}>
                           {settingsData.ogImageUrl ? (
                             <img
-                              src={settingsData.ogImageUrl}
+                              src={normalizeImageUrl(settingsData.ogImageUrl)}
                               alt="OG Image"
                               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                               onError={(e) => { e.currentTarget.src = '/og-image.png'; }}

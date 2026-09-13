@@ -39,6 +39,13 @@ export async function generateMetadata() {
     .replace(/<meta[^>]+content=["']([^"']+)["'][^>]*>/i, '$1')
     .trim();
 
+  const rawOg = settings.ogImageUrl || '/og-image.png';
+  const cleanOg = rawOg.startsWith('/') || rawOg.startsWith('http') ? rawOg : `/${rawOg}`;
+  const rawIcon = settings.iconUrl;
+  const cleanIcon = rawIcon
+    ? (rawIcon.startsWith('/') || rawIcon.startsWith('http') ? rawIcon : `/${rawIcon}`)
+    : faviconWithVersion || '/apple-touch-icon.png';
+
   const metadata = {
     metadataBase: new URL(baseUrl),
     title: {
@@ -76,7 +83,7 @@ export async function generateMetadata() {
       description,
       images: [
         {
-          url: '/og-image.png',
+          url: cleanOg,
           width: 1200,
           height: 630,
           alt: `${siteName} — Comparativas de Hosting y VPS`,
@@ -87,7 +94,7 @@ export async function generateMetadata() {
       card: 'summary_large_image',
       title: `${siteName} — ${tagline}`,
       description,
-      images: ['/og-image.png'],
+      images: [cleanOg],
       creator: '@debatehosting',
     },
     robots: {
@@ -116,7 +123,7 @@ export async function generateMetadata() {
             { url: `/favicon.ico?v=${version}`, sizes: 'any' },
           ],
       shortcut: faviconWithVersion,
-      apple: settings.iconUrl || faviconWithVersion || '/apple-touch-icon.png',
+      apple: cleanIcon,
     },
   };
 
@@ -142,7 +149,11 @@ export default function RootLayout({ children }) {
     settings.faviconUrl !== '/favicon.svg' &&
     settings.faviconUrl !== '/favicon.ico'
   );
-  const icon = settings.iconUrl || faviconWithVersion || '/apple-touch-icon.png';
+  const rawIcon = settings.iconUrl;
+  const cleanIcon = rawIcon
+    ? (rawIcon.startsWith('/') || rawIcon.startsWith('http') ? rawIcon : `/${rawIcon}`)
+    : faviconWithVersion || '/apple-touch-icon.png';
+  const icon = cleanIcon;
   const mimeType = getFaviconMime(rawFavicon);
   const cleanGsc = (settings.googleSearchConsoleCode || '')
     .replace(/<meta[^>]+content=["']([^"']+)["'][^>]*>/i, '$1')

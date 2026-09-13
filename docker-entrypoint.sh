@@ -3,8 +3,9 @@ set -e
 
 echo "🚀 Iniciando Debatehosting con PostgreSQL en Dokploy..."
 
-# 1. Asegurar directorio para logos y uploads
+# 1. Asegurar directorio para logos y uploads con permisos completos
 mkdir -p /app/public/uploads/logos
+chmod -R 777 /app/public/uploads 2>/dev/null || true
 
 # 2. Sincronizar esquema con PostgreSQL con reintentos de conexión
 echo "📦 Conectando y sincronizando esquema con PostgreSQL..."

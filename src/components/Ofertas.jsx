@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { Icon } from './Icon';
 import { useToast } from '../context/ToastContext';
+import { normalizeImageUrl } from '@/lib/imageHelper';
 
 const CATEGORIES_LIST = [
   { id: 'all', label: 'Todos' },
@@ -140,11 +141,16 @@ export const Ofertas = ({ providers = [] }) => {
                   <tr key={prov.id}>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                        {prov.logoUrl && (
+                        {prov.logoUrl ? (
                           <img
-                            src={prov.logoUrl}
+                            src={normalizeImageUrl(prov.logoUrl)}
                             alt={prov.name}
-                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              if (e.currentTarget.nextElementSibling) {
+                                e.currentTarget.nextElementSibling.style.display = 'flex';
+                              }
+                            }}
                             style={{
                               width: '28px',
                               height: '28px',
@@ -156,7 +162,26 @@ export const Ofertas = ({ providers = [] }) => {
                               flexShrink: 0,
                             }}
                           />
-                        )}
+                        ) : null}
+                        <div
+                          style={{
+                            width: '28px',
+                            height: '28px',
+                            borderRadius: '4px',
+                            backgroundColor: '#FAF7EE',
+                            border: '1px solid rgba(23,20,15,0.15)',
+                            display: prov.logoUrl ? 'none' : 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                            fontWeight: 800,
+                            fontSize: '0.75rem',
+                            fontFamily: 'var(--font-serif)',
+                            color: 'var(--text-ink)',
+                          }}
+                        >
+                          {prov.name?.slice(0, 2)?.toUpperCase() || 'DH'}
+                        </div>
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
                             <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.2rem', fontWeight: 700 }}>

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { verifyAdminRequest } from '@/lib/auth';
+import { normalizeImageUrl } from '@/lib/imageHelper';
 
 export async function PUT(request, { params }) {
   const admin = await verifyAdminRequest(request);
@@ -13,7 +14,7 @@ export async function PUT(request, { params }) {
 
     if (body.name !== undefined) dataToUpdate.name = body.name.trim();
     if (body.slug !== undefined) dataToUpdate.slug = body.slug.trim().toLowerCase();
-    if (body.logoUrl !== undefined) dataToUpdate.logoUrl = body.logoUrl ? body.logoUrl.trim() : null;
+    if (body.logoUrl !== undefined) dataToUpdate.logoUrl = normalizeImageUrl(body.logoUrl) || null;
     if (body.categories !== undefined) {
       dataToUpdate.categories = Array.isArray(body.categories)
         ? JSON.stringify(body.categories)

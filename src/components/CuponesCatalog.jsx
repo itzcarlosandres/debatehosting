@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { Icon } from './Icon';
 import { useToast } from '../context/ToastContext';
+import { normalizeImageUrl } from '@/lib/imageHelper';
 
 const CATEGORIES_LIST = [
   { id: 'all', label: 'Todos' },
@@ -351,9 +352,14 @@ export const CuponesCatalog = ({ providers = [] }) => {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: '1 1 260px' }}>
                     {prov?.logoUrl ? (
                       <img
-                        src={prov.logoUrl}
+                        src={normalizeImageUrl(prov.logoUrl)}
                         alt={prov.name}
-                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          if (e.currentTarget.nextElementSibling) {
+                            e.currentTarget.nextElementSibling.style.display = 'flex';
+                          }
+                        }}
                         style={{
                           width: '44px',
                           height: '44px',
@@ -365,24 +371,23 @@ export const CuponesCatalog = ({ providers = [] }) => {
                           flexShrink: 0,
                         }}
                       />
-                    ) : (
-                      <div style={{
-                        width: '44px',
-                        height: '44px',
-                        backgroundColor: '#FFFFFF',
-                        border: '1.5px solid var(--border-ink)',
-                        borderRadius: '4px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontFamily: 'var(--font-mono)',
-                        fontWeight: 700,
-                        fontSize: '0.9rem',
-                        flexShrink: 0,
-                      }}>
-                        {prov?.name?.slice(0, 2).toUpperCase() || 'CP'}
-                      </div>
-                    )}
+                    ) : null}
+                    <div style={{
+                      width: '44px',
+                      height: '44px',
+                      backgroundColor: '#FFFFFF',
+                      border: '1.5px solid var(--border-ink)',
+                      borderRadius: '4px',
+                      display: prov?.logoUrl ? 'none' : 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontFamily: 'var(--font-mono)',
+                      fontWeight: 700,
+                      fontSize: '0.95rem',
+                      flexShrink: 0,
+                    }}>
+                      {prov?.name?.slice(0, 2).toUpperCase() || 'CP'}
+                    </div>
 
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
@@ -484,7 +489,7 @@ export const CuponesCatalog = ({ providers = [] }) => {
                       <div className="ticket-provider" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         {prov?.logoUrl && (
                           <img
-                            src={prov.logoUrl}
+                            src={normalizeImageUrl(prov.logoUrl)}
                             alt={prov.name}
                             onError={(e) => { e.currentTarget.style.display = 'none'; }}
                             style={{ width: '20px', height: '20px', objectFit: 'contain' }}
