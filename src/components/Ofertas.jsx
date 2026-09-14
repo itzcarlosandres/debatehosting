@@ -128,7 +128,7 @@ export const Ofertas = ({ providers = [], settings = {} }) => {
                 <th>Precio / Período</th>
                 <th>Descuento</th>
                 <th>Cupón Promocional</th>
-                <th style={{ textAlign: 'right' }}>Enlace Directo</th>
+                <th style={{ textAlign: 'right', whiteSpace: 'nowrap', minWidth: '140px' }}>Enlace Directo</th>
               </tr>
             </thead>
             <tbody>
@@ -251,13 +251,14 @@ export const Ofertas = ({ providers = [], settings = {} }) => {
                         </span>
                       )}
                     </td>
-                    <td style={{ textAlign: 'right' }}>
+                    <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                       <a
                         href={prov.slug ? `/go/${prov.slug}` : prov.affiliateUrl}
                         target="_blank"
                         rel="sponsored noopener noreferrer"
                         onClick={() => handleProviderLinkClick(prov)}
                         className="btn btn-secondary btn-sm"
+                        style={{ whiteSpace: 'nowrap' }}
                       >
                         <span>Ver web</span>
                         <Icon name="external" size={13} />

@@ -599,7 +599,7 @@ export const OfertasCatalog = ({ providers = [] }) => {
                   <th>Precio / Período</th>
                   <th>Descuento</th>
                   <th>Cupón Promocional</th>
-                  <th style={{ textAlign: 'right' }}>Enlace Directo</th>
+                  <th style={{ textAlign: 'right', whiteSpace: 'nowrap', minWidth: '140px' }}>Enlace Directo</th>
                 </tr>
               </thead>
               <tbody>
@@ -736,13 +736,14 @@ export const OfertasCatalog = ({ providers = [] }) => {
                           </span>
                         )}
                       </td>
-                      <td style={{ textAlign: 'right' }}>
+                      <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                         <a
                           href={prov.slug ? `/go/${prov.slug}` : prov.affiliateUrl}
                           target="_blank"
                           rel="sponsored noopener noreferrer"
                           onClick={() => handleProviderClick(prov)}
                           className="btn btn-secondary btn-sm"
+                          style={{ whiteSpace: 'nowrap' }}
                         >
                           <span>Ver oferta</span>
                           <Icon name="external" size={13} />
