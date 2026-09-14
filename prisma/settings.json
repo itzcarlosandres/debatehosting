@@ -4,7 +4,7 @@
   "siteUrl": "https://debatehosting.com",
   "contactEmail": "redaccion@debatehosting.com",
   "currency": "$",
-  "faviconUrl": "/uploads/logos/logo_1789022509409_rocket-svgrepo-com.png",
+  "faviconUrl": "/favicon.png",
   "logoUrl": "/logo.png",
   "iconUrl": "/icon.png",
   "ogImageUrl": "/og-image.png",
@@ -141,5 +141,5 @@
   "geminiApiKey": "",
   "customHeadCode": "",
   "customBodyCode": "",
-  "updatedAt": "2026-09-14T02:53:19.298Z"
+  "updatedAt": "2026-09-14T03:57:00.000Z"
 }
