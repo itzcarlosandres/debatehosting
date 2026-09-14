@@ -142,8 +142,8 @@ export default function AdminPage() {
   const [user, setUser] = useState(null);
 
   // Estados de Login
-  const [email, setEmail] = useState('admin@debatehosting.com');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState('');
 
@@ -948,6 +948,8 @@ export default function AdminPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                placeholder="tu@correo.com"
+                autoComplete="email"
                 required
                 className="input-editorial"
                 style={{
@@ -967,6 +969,8 @@ export default function AdminPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                autoComplete="current-password"
                 required
                 className="input-editorial"
                 style={{
@@ -1136,7 +1140,7 @@ export default function AdminPage() {
           </button>
 
           <div className="admin-user-email">
-            {user?.email || 'admin@debatehosting.com'}
+            {user?.email || 'Administrador'}
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.3rem' }}>
             <Link href="/" target="_blank" className="btn btn-secondary btn-sm" style={{ flex: 1 }}>
@@ -5179,7 +5183,8 @@ export default function AdminPage() {
                         type="email"
                         className="settings-input"
                         disabled
-                        value={user?.email || 'admin@debatehosting.com'}
+                        value={user?.email || ''}
+                        placeholder="tu@correo.com"
                         style={{ opacity: 0.7, cursor: 'not-allowed' }}
                       />
                     </div>
@@ -5191,7 +5196,7 @@ export default function AdminPage() {
                         className="settings-input"
                         value={profileForm.newEmail}
                         onChange={(e) => setProfileForm({ ...profileForm, newEmail: e.target.value })}
-                        placeholder="nuevo-admin@debatehosting.com"
+                        placeholder="nuevo-correo@ejemplo.com"
                       />
                     </div>
                   </div>
