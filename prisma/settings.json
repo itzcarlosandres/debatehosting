@@ -219,6 +219,27 @@
         ],
         "ctaText": "Configurar VPS",
         "ctaUrl": ""
+      },
+      {
+        "id": "custom-1789414987192",
+        "categoryTitle": "Nueva Categoría Destacada",
+        "badge": "⭐ Recomendado",
+        "badgeColor": "gold",
+        "providerId": "cmu1luvii000euv3gumjig7bz",
+        "providerSlug": "porkbun",
+        "providerName": "Porkbun",
+        "score": 7.6,
+        "plan": "Registro Dominio .COM",
+        "price": "$5.63/año",
+        "priceBefore": "$7.06/año",
+        "highlight": "Excelente opción recomendada para proyectos web en crecimiento.",
+        "keyPoints": [
+          "Alto rendimiento comprobado",
+          "Soporte técnico 24/7",
+          "Migración incluida"
+        ],
+        "ctaText": "Ver Oferta",
+        "ctaUrl": ""
       }
     ]
   },
@@ -233,5 +254,5 @@
   "geminiApiKey": "",
   "customHeadCode": "",
   "customBodyCode": "",
-  "updatedAt": "2026-09-14T03:57:00.000Z"
+  "updatedAt": "2026-09-14T19:43:18.087Z"
 }

@@ -136,15 +136,16 @@ const QUICK_BRAND_COLORS = [
   { label: 'Púrpura IA', hex: '#8B5CF6' },
 ];
 
-const slugify = (text) =>
-  (text || '')
-    .toString()
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
+const MEJORES_CATEGORY_PRESETS = [
+  { id: 'global', label: '🏆 Mejor Global', categoryTitle: 'Mejor Global', badge: '🏆 Ganador Absoluto', badgeColor: 'green' },
+  { id: 'speed', label: '⚡ Más Rápido TTFB', categoryTitle: 'Más Rápido TTFB', badge: '⚡ Máxima Potencia', badgeColor: 'green' },
+  { id: 'value', label: '💰 Calidad / Precio', categoryTitle: 'Calidad / Precio', badge: '💰 Más Económico', badgeColor: 'gold' },
+  { id: 'vps', label: '🚀 Mejor VPS', categoryTitle: 'Mejor VPS', badge: '🚀 Potencia VPS', badgeColor: 'dark' },
+  { id: 'wordpress', label: '🌐 WordPress VIP', categoryTitle: 'Mejor para WordPress', badge: '⚡ Optimizado WP', badgeColor: 'green' },
+  { id: 'support', label: '🛡️ Mejor Soporte', categoryTitle: 'Mejor Soporte 24/7', badge: '🛡️ Soporte Premium', badgeColor: 'green' },
+  { id: 'cloud', label: '☁️ Cloud Alto Tráfico', categoryTitle: 'Mejor Cloud Hosting', badge: '☁️ Cloud Alto Tráfico', badgeColor: 'gold' },
+  { id: 'starter', label: '⭐ Muy Intuitivo', categoryTitle: 'Fácil para Empezar', badge: '⭐ Muy Intuitivo', badgeColor: 'green' },
+];
 
 export default function AdminPage() {
   const [token, setToken] = useState(null);
@@ -405,6 +406,8 @@ export default function AdminPage() {
   });
   const [settingsSubtab, setSettingsSubtab] = useState('general');
   const [portadaSubtab, setPortadaSubtab] = useState('hero');
+  const [quickAddMejoresProvId, setQuickAddMejoresProvId] = useState('');
+  const [expandedMejoresIndex, setExpandedMejoresIndex] = useState(null);
   const [settingsSaving, setSettingsSaving] = useState(false);
   const [heroSaving, setHeroSaving] = useState(false);
   const [resettingContent, setResettingContent] = useState(false);
@@ -827,6 +830,8 @@ export default function AdminPage() {
         price: selectedProv.priceFrom ? `$${selectedProv.priceFrom.toFixed(2)}/${selectedProv.period || 'mes'}` : currentItems[index].price,
         priceBefore: selectedProv.priceBefore ? `$${selectedProv.priceBefore.toFixed(2)}/${selectedProv.period || 'mes'}` : currentItems[index].priceBefore,
         score: selectedProv.scoreRendimiento || currentItems[index].score,
+        highlight: selectedProv.description || selectedProv.verdict || currentItems[index].highlight,
+        keyPoints: selectedProv.pros ? selectedProv.pros.split('\n').filter(Boolean).slice(0, 3) : currentItems[index].keyPoints,
       };
 
       return {
@@ -838,6 +843,112 @@ export default function AdminPage() {
         },
       };
     });
+    toast.success(`Datos de ${selectedProv.name} aplicados a la tarjeta`);
+  };
+
+  const handleMoveMejoresItem = (index, direction) => {
+    setSettingsData((prev) => {
+      const currentItems = Array.isArray(prev?.mejores?.items)
+        ? [...prev.mejores.items]
+        : [...(DEFAULT_MEJORES_SETTINGS.items || [])];
+
+      const newIndex = index + direction;
+      if (newIndex < 0 || newIndex >= currentItems.length) return prev;
+
+      const [movedItem] = currentItems.splice(index, 1);
+      currentItems.splice(newIndex, 0, movedItem);
+
+      return {
+        ...prev,
+        mejores: {
+          ...DEFAULT_MEJORES_SETTINGS,
+          ...(prev?.mejores || {}),
+          items: currentItems,
+        },
+      };
+    });
+  };
+
+  const handleApplyMejoresPreset = (index, preset) => {
+    setSettingsData((prev) => {
+      const currentItems = Array.isArray(prev?.mejores?.items)
+        ? [...prev.mejores.items]
+        : [...(DEFAULT_MEJORES_SETTINGS.items || [])];
+
+      if (!currentItems[index]) return prev;
+
+      currentItems[index] = {
+        ...currentItems[index],
+        categoryTitle: preset.categoryTitle,
+        badge: preset.badge,
+        badgeColor: preset.badgeColor,
+      };
+
+      return {
+        ...prev,
+        mejores: {
+          ...DEFAULT_MEJORES_SETTINGS,
+          ...(prev?.mejores || {}),
+          items: currentItems,
+        },
+      };
+    });
+    toast.success(`Distinción "${preset.categoryTitle}" aplicada`);
+  };
+
+  const handleQuickAddMejoresProvider = (providerId) => {
+    if (!providerId) return;
+    const selectedProv = providers.find((p) => p.id === providerId);
+    if (!selectedProv) return;
+
+    setSettingsData((prev) => {
+      const currentItems = Array.isArray(prev?.mejores?.items)
+        ? [...prev.mejores.items]
+        : [...(DEFAULT_MEJORES_SETTINGS.items || [])];
+
+      const nextPresetIndex = currentItems.length % MEJORES_CATEGORY_PRESETS.length;
+      const preset = MEJORES_CATEGORY_PRESETS[nextPresetIndex] || MEJORES_CATEGORY_PRESETS[0];
+
+      const newItem = {
+        id: 'cat-' + (selectedProv.slug || Date.now()) + '-' + Date.now().toString().slice(-4),
+        categoryTitle: preset.categoryTitle,
+        badge: preset.badge,
+        badgeColor: preset.badgeColor,
+        providerId: selectedProv.id,
+        providerSlug: selectedProv.slug,
+        providerName: selectedProv.name,
+        score: selectedProv.scoreRendimiento || 9.8,
+        plan: selectedProv.plan || 'Plan Recomendado',
+        price: selectedProv.priceFrom ? `$${selectedProv.priceFrom.toFixed(2)}/${selectedProv.period || 'mes'}` : '$2.99/mes',
+        priceBefore: selectedProv.priceBefore ? `$${selectedProv.priceBefore.toFixed(2)}/${selectedProv.period || 'mes'}` : '',
+        highlight: selectedProv.description || selectedProv.verdict || `Proveedor destacado con excelente rendimiento, fiabilidad y soporte para ${selectedProv.name}.`,
+        keyPoints: selectedProv.pros ? selectedProv.pros.split('\n').filter(Boolean).slice(0, 3) : ['Velocidad TTFB ultrarrápida', 'Soporte técnico 24/7', 'Garantía oficial'],
+        ctaText: 'Reclamar Descuento',
+        ctaUrl: '',
+      };
+
+      return {
+        ...prev,
+        mejores: {
+          ...DEFAULT_MEJORES_SETTINGS,
+          ...(prev?.mejores || {}),
+          items: [...currentItems, newItem],
+        },
+      };
+    });
+
+    setQuickAddMejoresProvId('');
+    toast.success(`¡${selectedProv.name} añadido al ranking con éxito!`);
+  };
+
+  const handleResetMejoresToDefaults = () => {
+    if (window.confirm('¿Seguro que deseas restablecer el ranking y categorías a los valores recomendados por defecto?')) {
+      setSettingsData((prev) => ({
+        ...prev,
+        mejores: { ...DEFAULT_MEJORES_SETTINGS },
+      }));
+      toast.info('Ranking de fábrica cargado. Haz clic en "Guardar Portada" para aplicar.');
+    }
   };
 
   const handleAddMejoresItem = () => {
@@ -6817,20 +6928,21 @@ export default function AdminPage() {
 
                     return (
                       <div className="settings-card" style={{ marginBottom: '1.75rem' }}>
+                        {/* CABECERA PRINCIPAL */}
                         <div className="settings-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.25rem', borderBottom: '1px solid ' + (isDark ? '#2B251D' : 'rgba(23, 20, 15, 0.08)'), paddingBottom: '0.75rem' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <Icon name="award" size={18} color={isDark ? '#46C285' : '#0E6B41'} />
+                            <Icon name="award" size={20} color={isDark ? '#46C285' : '#0E6B41'} />
                             <div>
                               <h2 className="settings-card-title" style={{ fontSize: '1.05rem', margin: 0 }}>
-                                Ganadores por Categoría (Tarjetas Destacadas)
+                                Guía Editorial y Ranking (Ganadores por Categoría)
                               </h2>
                               <span style={{ fontSize: '0.76rem', color: isDark ? '#9E9687' : 'var(--text-muted)' }}>
-                                Configura qué proveedor gana cada distinción técnica y personaliza sus textos.
+                                Administra de forma ultra rápida qué proveedores ganan el podio editorial en cada distinción técnica.
                               </span>
                             </div>
                           </div>
 
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
                             <label style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', cursor: 'pointer', fontSize: '0.82rem', fontFamily: 'var(--font-mono)' }}>
                               <input
                                 type="checkbox"
@@ -6846,181 +6958,444 @@ export default function AdminPage() {
                                   }));
                                 }}
                               />
-                              <span>Mostrar sección en la portada</span>
+                              <span>Mostrar sección en portada</span>
                             </label>
+
+                            <button
+                              type="button"
+                              onClick={handleResetMejoresToDefaults}
+                              className="btn btn-secondary btn-sm"
+                              title="Restablecer a la selección recomendada original"
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.76rem' }}
+                            >
+                              <Icon name="history" size={13} />
+                              <span>Restaurar Fábrica</span>
+                            </button>
 
                             <button
                               type="button"
                               onClick={handleAddMejoresItem}
                               className="btn btn-secondary btn-sm"
-                              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.76rem' }}
                             >
                               <Icon name="plus" size={13} />
-                              <span>Añadir Categoría</span>
+                              <span>+ Tarjeta en Blanco</span>
                             </button>
                           </div>
                         </div>
 
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                          {items.map((item, idx) => (
-                            <div
-                              key={item.id || idx}
+                        {/* CAJA RÁPIDA: DROP / DESPLEGABLE PARA AÑADIR EN 1 CLIC */}
+                        <div style={{
+                          padding: '1.25rem',
+                          borderRadius: '8px',
+                          backgroundColor: isDark ? '#18140E' : '#F4F2EB',
+                          border: '1.5px solid ' + (isDark ? '#46C285' : '#0E6B41'),
+                          marginBottom: '1.5rem',
+                          boxShadow: isDark ? '0 4px 16px rgba(0,0,0,0.3)' : '0 4px 16px rgba(14, 107, 65, 0.08)',
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                              <Icon name="sparkles" size={16} color={isDark ? '#46C285' : '#0E6B41'} />
+                              <strong style={{ fontSize: '0.9rem', color: isDark ? '#FAF7EE' : 'var(--text-ink)' }}>
+                                ⚡ Añadir Proveedor al Ranking al Instante (Drop Rápido)
+                              </strong>
+                            </div>
+                            <span style={{ fontSize: '0.74rem', color: isDark ? '#9E9687' : 'var(--text-muted)' }}>
+                              Selecciona un proveedor del drop para autocompletar su tarjeta de inmediato
+                            </span>
+                          </div>
+
+                          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                            <select
+                              className="settings-input"
                               style={{
-                                padding: '1.25rem',
-                                borderRadius: '8px',
-                                border: '1.5px solid ' + (isDark ? '#383025' : 'rgba(23, 20, 15, 0.12)'),
-                                backgroundColor: isDark ? '#14110C' : '#FAF8F5',
+                                flex: '1 1 300px',
+                                fontWeight: 600,
+                                backgroundColor: isDark ? '#1F1B14' : '#FFFFFF',
+                                borderColor: isDark ? '#383025' : 'var(--border-ink)',
+                              }}
+                              value={quickAddMejoresProvId}
+                              onChange={(e) => {
+                                setQuickAddMejoresProvId(e.target.value);
+                                if (e.target.value) {
+                                  handleQuickAddMejoresProvider(e.target.value);
+                                }
                               }}
                             >
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid ' + (isDark ? '#2B251D' : 'rgba(23, 20, 15, 0.08)'), paddingBottom: '0.5rem' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.76rem', fontWeight: 700, padding: '0.2rem 0.5rem', backgroundColor: isDark ? '#2B251D' : 'var(--bg-paper)', borderRadius: '4px', border: '1px solid ' + (isDark ? '#383025' : 'var(--border-ink)') }}>
-                                    #{idx + 1}
-                                  </span>
-                                  <strong style={{ fontSize: '0.95rem', color: isDark ? '#FAF7EE' : 'var(--text-ink)' }}>
-                                    {item.categoryTitle || `Categoría #${idx + 1}`}
-                                  </strong>
-                                </div>
+                              <option value="">➕ Haz clic aquí para elegir un proveedor del desplegable...</option>
+                              {providers.map((p) => (
+                                <option key={p.id} value={p.id}>
+                                  🏢 {p.name} — Plan: {p.plan || 'Base'} | Puntuación: {p.scoreRendimiento || '9.8'}/10 | ${p.priceFrom ? p.priceFrom.toFixed(2) : '2.99'}/mes
+                                </option>
+                              ))}
+                            </select>
 
-                                <button
-                                  type="button"
-                                  onClick={() => handleDeleteMejoresItem(idx)}
-                                  className="btn btn-secondary btn-sm"
-                                  style={{ color: 'var(--red-accent)', borderColor: 'rgba(176, 58, 38, 0.3)', padding: '0.25rem 0.6rem', fontSize: '0.74rem' }}
-                                >
-                                  <Icon name="trash" size={13} />
-                                  <span>Eliminar</span>
-                                </button>
-                              </div>
-
-                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
-                                <div>
-                                  <label className="settings-label">Título de la Categoría</label>
-                                  <input
-                                    type="text"
-                                    className="settings-input"
-                                    value={item.categoryTitle || ''}
-                                    onChange={(e) => updateMejoresItemField(idx, 'categoryTitle', e.target.value)}
-                                    placeholder="Ej: Mejor Hosting Global 2026"
-                                  />
-                                </div>
-
-                                <div>
-                                  <label className="settings-label">Proveedor Asignado</label>
-                                  <select
-                                    className="settings-input"
-                                    value={item.providerId || ''}
-                                    onChange={(e) => handleSelectMejoresProvider(idx, e.target.value)}
-                                  >
-                                    <option value="">-- Seleccionar Proveedor --</option>
-                                    {providers.map((p) => (
-                                      <option key={p.id} value={p.id}>
-                                        {p.name} ({p.slug})
-                                      </option>
-                                    ))}
-                                  </select>
-                                </div>
-
-                                <div>
-                                  <label className="settings-label">Texto de la Insignia</label>
-                                  <input
-                                    type="text"
-                                    className="settings-input"
-                                    value={item.badge || ''}
-                                    onChange={(e) => updateMejoresItemField(idx, 'badge', e.target.value)}
-                                    placeholder="Ej: 🏆 Ganador Absoluto"
-                                  />
-                                </div>
-
-                                <div>
-                                  <label className="settings-label">Color de la Insignia</label>
-                                  <select
-                                    className="settings-input"
-                                    value={item.badgeColor || 'green'}
-                                    onChange={(e) => updateMejoresItemField(idx, 'badgeColor', e.target.value)}
-                                  >
-                                    <option value="green">Verde Editorial</option>
-                                    <option value="gold">Dorado / Oro</option>
-                                    <option value="red">Rojo Alerta</option>
-                                    <option value="dark">Tinta Negra</option>
-                                  </select>
-                                </div>
-
-                                <div>
-                                  <label className="settings-label">Plan Recomendado</label>
-                                  <input
-                                    type="text"
-                                    className="settings-input"
-                                    value={item.plan || ''}
-                                    onChange={(e) => updateMejoresItemField(idx, 'plan', e.target.value)}
-                                    placeholder="Ej: Premium Web"
-                                  />
-                                </div>
-
-                                <div>
-                                  <label className="settings-label">Precio Destacado</label>
-                                  <input
-                                    type="text"
-                                    className="settings-input"
-                                    value={item.price || ''}
-                                    onChange={(e) => updateMejoresItemField(idx, 'price', e.target.value)}
-                                    placeholder="Ej: $2.49/mes"
-                                  />
-                                </div>
-
-                                <div>
-                                  <label className="settings-label">Precio Anterior (Tachado)</label>
-                                  <input
-                                    type="text"
-                                    className="settings-input"
-                                    value={item.priceBefore || ''}
-                                    onChange={(e) => updateMejoresItemField(idx, 'priceBefore', e.target.value)}
-                                    placeholder="Ej: $11.99/mes"
-                                  />
-                                </div>
-
-                                <div>
-                                  <label className="settings-label">Texto Botón CTA</label>
-                                  <input
-                                    type="text"
-                                    className="settings-input"
-                                    value={item.ctaText || ''}
-                                    onChange={(e) => updateMejoresItemField(idx, 'ctaText', e.target.value)}
-                                    placeholder="Ej: Reclamar Descuento"
-                                  />
-                                </div>
-                              </div>
-
-                              <div style={{ marginBottom: '1rem' }}>
-                                <label className="settings-label">Veredicto / Resumen Editorial</label>
-                                <textarea
-                                  rows={2}
-                                  className="settings-input"
-                                  value={item.highlight || ''}
-                                  onChange={(e) => updateMejoresItemField(idx, 'highlight', e.target.value)}
-                                  placeholder="Explica brevemente por qué este proveedor gana en esta categoría..."
-                                />
-                              </div>
-
-                              <div>
-                                <label className="settings-label">Puntos Clave (3 líneas separadas por comas o saltos)</label>
-                                <input
-                                  type="text"
-                                  className="settings-input"
-                                  value={Array.isArray(item.keyPoints) ? item.keyPoints.join(' | ') : (item.keyPoints || '')}
-                                  onChange={(e) => {
-                                    const points = e.target.value.split('|').map((s) => s.trim()).filter(Boolean);
-                                    updateMejoresItemField(idx, 'keyPoints', points);
-                                  }}
-                                  placeholder="Ej: Velocidad TTFB < 180ms | Dominio gratis 1er año | Garantía 30 días"
-                                />
-                                <span style={{ fontSize: '0.72rem', color: isDark ? '#9E9687' : 'var(--text-muted)' }}>
-                                  Usa el caracter de barra vertical | para separar cada punto clave.
-                                </span>
-                              </div>
-                            </div>
-                          ))}
+                            <button
+                              type="button"
+                              onClick={() => quickAddMejoresProvId && handleQuickAddMejoresProvider(quickAddMejoresProvId)}
+                              disabled={!quickAddMejoresProvId}
+                              className="btn btn-primary btn-sm"
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1rem' }}
+                            >
+                              <Icon name="plus" size={14} />
+                              <span>Añadir al Ranking</span>
+                            </button>
+                          </div>
                         </div>
+
+                        {/* LISTADO DE TARJETAS DEL RANKING */}
+                        {items.length === 0 ? (
+                          <div style={{
+                            padding: '2.5rem 1.5rem',
+                            textAlign: 'center',
+                            borderRadius: '8px',
+                            border: '1.5px dashed ' + (isDark ? '#383025' : 'rgba(23, 20, 15, 0.2)'),
+                            backgroundColor: isDark ? '#14110C' : '#FAF8F5',
+                          }}>
+                            <Icon name="award" size={32} color={isDark ? '#46C285' : '#0E6B41'} style={{ marginBottom: '0.75rem' }} />
+                            <h3 style={{ fontSize: '1.05rem', margin: '0 0 0.4rem 0', color: isDark ? '#FAF7EE' : 'var(--text-ink)' }}>
+                              No hay categorías en el ranking
+                            </h3>
+                            <p style={{ fontSize: '0.84rem', color: isDark ? '#9E9687' : 'var(--text-muted)', maxWidth: '480px', margin: '0 auto 1.25rem auto' }}>
+                              Selecciona un proveedor arriba o pulsa restaurar predeterminados para cargar los mejores hosting.
+                            </p>
+                            <button
+                              type="button"
+                              onClick={handleResetMejoresToDefaults}
+                              className="btn btn-primary btn-sm"
+                            >
+                              <Icon name="history" size={14} />
+                              <span>Cargar Ranking Recomendado</span>
+                            </button>
+                          </div>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                            {items.map((item, idx) => {
+                              const selectedProv = providers.find(
+                                (p) => p.id === item.providerId || (p.slug && item.providerSlug && p.slug.toLowerCase() === item.providerSlug.toLowerCase())
+                              ) || null;
+                              const isExpanded = expandedMejoresIndex === idx;
+
+                              return (
+                                <div
+                                  key={item.id || idx}
+                                  style={{
+                                    padding: '1.25rem',
+                                    borderRadius: '8px',
+                                    border: '1.5px solid ' + (isDark ? '#383025' : 'rgba(23, 20, 15, 0.14)'),
+                                    backgroundColor: isDark ? '#14110C' : '#FAF8F5',
+                                    transition: 'border-color 0.2s ease',
+                                  }}
+                                >
+                                  {/* CABECERA DE LA TARJETA: ORDEN, LOGO, NOMBRE Y BOTONES DE MOVIMIENTO */}
+                                  <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    marginBottom: '1rem',
+                                    borderBottom: '1px solid ' + (isDark ? '#2B251D' : 'rgba(23, 20, 15, 0.08)'),
+                                    paddingBottom: '0.65rem',
+                                    flexWrap: 'wrap',
+                                    gap: '0.75rem',
+                                  }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                      {/* Puesto */}
+                                      <span style={{
+                                        fontFamily: 'var(--font-mono)',
+                                        fontSize: '0.82rem',
+                                        fontWeight: 800,
+                                        padding: '0.25rem 0.65rem',
+                                        backgroundColor: isDark ? 'rgba(70, 194, 133, 0.15)' : 'rgba(14, 107, 65, 0.1)',
+                                        color: isDark ? '#46C285' : '#0E6B41',
+                                        borderRadius: '6px',
+                                        border: '1px solid ' + (isDark ? 'rgba(70, 194, 133, 0.3)' : 'rgba(14, 107, 65, 0.2)'),
+                                      }}>
+                                        #{idx + 1}
+                                      </span>
+
+                                      {/* Miniatura Logo / Monograma */}
+                                      {selectedProv?.logoUrl ? (
+                                        <img
+                                          src={normalizeImageUrl(selectedProv.logoUrl)}
+                                          alt={item.providerName || 'Logo'}
+                                          style={{ width: '28px', height: '28px', objectFit: 'contain', borderRadius: '4px', backgroundColor: '#FFFFFF', padding: '2px' }}
+                                        />
+                                      ) : (
+                                        <div style={{
+                                          width: '28px',
+                                          height: '28px',
+                                          borderRadius: '4px',
+                                          backgroundColor: isDark ? '#2B251D' : 'var(--bg-paper)',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          fontSize: '0.72rem',
+                                          fontWeight: 700,
+                                          fontFamily: 'var(--font-mono)',
+                                          color: isDark ? '#FAF7EE' : 'var(--text-ink)',
+                                          border: '1px solid ' + (isDark ? '#383025' : 'var(--border-ink)'),
+                                        }}>
+                                          {(item.providerName || 'PR').slice(0, 2).toUpperCase()}
+                                        </div>
+                                      )}
+
+                                      <div>
+                                        <strong style={{ fontSize: '0.98rem', color: isDark ? '#FAF7EE' : 'var(--text-ink)', display: 'block', lineHeight: 1.2 }}>
+                                          {item.categoryTitle || `Categoría #${idx + 1}`}
+                                        </strong>
+                                        <span style={{ fontSize: '0.76rem', color: isDark ? '#46C285' : '#0E6B41', fontWeight: 600 }}>
+                                          {item.providerName || 'Proveedor no asignado'} · {item.badge || 'Sin insignia'}
+                                        </span>
+                                      </div>
+                                    </div>
+
+                                    {/* CONTROLES DE SUBIR, BAJAR Y ELIMINAR */}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleMoveMejoresItem(idx, -1)}
+                                        disabled={idx === 0}
+                                        className="btn btn-secondary btn-sm"
+                                        title="Subir posición"
+                                        style={{ padding: '0.25rem 0.55rem', opacity: idx === 0 ? 0.4 : 1, cursor: idx === 0 ? 'not-allowed' : 'pointer' }}
+                                      >
+                                        <Icon name="arrowUp" size={13} />
+                                        <span style={{ fontSize: '0.74rem' }}>Subir</span>
+                                      </button>
+
+                                      <button
+                                        type="button"
+                                        onClick={() => handleMoveMejoresItem(idx, 1)}
+                                        disabled={idx === items.length - 1}
+                                        className="btn btn-secondary btn-sm"
+                                        title="Bajar posición"
+                                        style={{ padding: '0.25rem 0.55rem', opacity: idx === items.length - 1 ? 0.4 : 1, cursor: idx === items.length - 1 ? 'not-allowed' : 'pointer' }}
+                                      >
+                                        <Icon name="arrowDown" size={13} />
+                                        <span style={{ fontSize: '0.74rem' }}>Bajar</span>
+                                      </button>
+
+                                      <button
+                                        type="button"
+                                        onClick={() => handleDeleteMejoresItem(idx)}
+                                        className="btn btn-secondary btn-sm"
+                                        title="Eliminar esta tarjeta"
+                                        style={{ color: 'var(--red-accent)', borderColor: 'rgba(176, 58, 38, 0.3)', padding: '0.25rem 0.55rem', fontSize: '0.74rem' }}
+                                      >
+                                        <Icon name="trash" size={13} />
+                                        <span>Eliminar</span>
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  {/* FILA 1: SELECTOR DROP DEL PROVEEDOR & PRESETS RÁPIDOS DE CATEGORÍA */}
+                                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+                                    <div>
+                                      <label className="settings-label" style={{ fontWeight: 700, color: isDark ? '#46C285' : '#0E6B41' }}>
+                                        1. Proveedor Asignado (Drop / Selector)
+                                      </label>
+                                      <select
+                                        className="settings-input"
+                                        style={{ fontWeight: 600 }}
+                                        value={item.providerId || selectedProv?.id || ''}
+                                        onChange={(e) => handleSelectMejoresProvider(idx, e.target.value)}
+                                      >
+                                        <option value="">-- Seleccionar Proveedor --</option>
+                                        {providers.map((p) => (
+                                          <option key={p.id} value={p.id}>
+                                            {p.name} ({p.slug}) — Plan: {p.plan || 'Base'} (${p.priceFrom ? p.priceFrom.toFixed(2) : '2.99'}/m)
+                                          </option>
+                                        ))}
+                                      </select>
+                                      <span style={{ fontSize: '0.72rem', color: isDark ? '#9E9687' : 'var(--text-muted)' }}>
+                                        Al cambiar de proveedor se actualizan precio, plan y calificación automáticamente.
+                                      </span>
+                                    </div>
+
+                                    <div>
+                                      <label className="settings-label" style={{ fontWeight: 700 }}>
+                                        2. Título de la Categoría
+                                      </label>
+                                      <input
+                                        type="text"
+                                        className="settings-input"
+                                        value={item.categoryTitle || ''}
+                                        onChange={(e) => updateMejoresItemField(idx, 'categoryTitle', e.target.value)}
+                                        placeholder="Ej: Mejor Global 2026"
+                                      />
+                                      {/* Presets Rápidos en 1 Clic */}
+                                      <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', marginTop: '0.4rem' }}>
+                                        <span style={{ fontSize: '0.7rem', color: isDark ? '#9E9687' : 'var(--text-muted)', alignSelf: 'center', marginRight: '0.2rem' }}>
+                                          Presets rápidos:
+                                        </span>
+                                        {MEJORES_CATEGORY_PRESETS.slice(0, 5).map((preset) => (
+                                          <button
+                                            key={preset.id}
+                                            type="button"
+                                            onClick={() => handleApplyMejoresPreset(idx, preset)}
+                                            style={{
+                                              fontSize: '0.68rem',
+                                              padding: '0.15rem 0.45rem',
+                                              borderRadius: '4px',
+                                              border: '1px solid ' + (isDark ? '#383025' : 'rgba(23, 20, 15, 0.15)'),
+                                              backgroundColor: isDark ? '#1C1914' : '#FFFFFF',
+                                              color: isDark ? '#E5E0D4' : 'var(--text-ink)',
+                                              cursor: 'pointer',
+                                            }}
+                                            title={`Aplicar ${preset.label}`}
+                                          >
+                                            {preset.label}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* FILA 2: DATOS COMERCIALES VISIBLES (INSIGNIA, PLAN, PRECIO, CALIFICACIÓN, CTA) */}
+                                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.85rem', marginBottom: '1rem' }}>
+                                    <div>
+                                      <label className="settings-label">Texto Insignia (Badge)</label>
+                                      <input
+                                        type="text"
+                                        className="settings-input"
+                                        value={item.badge || ''}
+                                        onChange={(e) => updateMejoresItemField(idx, 'badge', e.target.value)}
+                                        placeholder="Ej: 🏆 Ganador Absoluto"
+                                      />
+                                    </div>
+
+                                    <div>
+                                      <label className="settings-label">Color Insignia</label>
+                                      <select
+                                        className="settings-input"
+                                        value={item.badgeColor || 'green'}
+                                        onChange={(e) => updateMejoresItemField(idx, 'badgeColor', e.target.value)}
+                                      >
+                                        <option value="green">🟢 Verde Editorial</option>
+                                        <option value="gold">🟡 Dorado / Oro</option>
+                                        <option value="red">🔴 Rojo Alerta</option>
+                                        <option value="dark">⚫ Tinta Negra</option>
+                                      </select>
+                                    </div>
+
+                                    <div>
+                                      <label className="settings-label">Plan Recomendado</label>
+                                      <input
+                                        type="text"
+                                        className="settings-input"
+                                        value={item.plan || ''}
+                                        onChange={(e) => updateMejoresItemField(idx, 'plan', e.target.value)}
+                                        placeholder="Ej: Premium Web"
+                                      />
+                                    </div>
+
+                                    <div>
+                                      <label className="settings-label">Precio Actual</label>
+                                      <input
+                                        type="text"
+                                        className="settings-input"
+                                        value={item.price || ''}
+                                        onChange={(e) => updateMejoresItemField(idx, 'price', e.target.value)}
+                                        placeholder="Ej: $2.49/mes"
+                                      />
+                                    </div>
+
+                                    <div>
+                                      <label className="settings-label">Precio Anterior</label>
+                                      <input
+                                        type="text"
+                                        className="settings-input"
+                                        value={item.priceBefore || ''}
+                                        onChange={(e) => updateMejoresItemField(idx, 'priceBefore', e.target.value)}
+                                        placeholder="Ej: $11.99/mes"
+                                      />
+                                    </div>
+
+                                    <div>
+                                      <label className="settings-label">Calificación (Score / 10)</label>
+                                      <input
+                                        type="number"
+                                        step="0.1"
+                                        min="1"
+                                        max="10"
+                                        className="settings-input"
+                                        value={item.score ?? 9.8}
+                                        onChange={(e) => updateMejoresItemField(idx, 'score', parseFloat(e.target.value) || 9.8)}
+                                        placeholder="9.8"
+                                      />
+                                    </div>
+
+                                    <div>
+                                      <label className="settings-label">Botón Oferta</label>
+                                      <input
+                                        type="text"
+                                        className="settings-input"
+                                        value={item.ctaText || ''}
+                                        onChange={(e) => updateMejoresItemField(idx, 'ctaText', e.target.value)}
+                                        placeholder="Ej: Reclamar Descuento"
+                                      />
+                                    </div>
+                                  </div>
+
+                                  {/* FILA 3: ACORDEÓN DESPLEGABLE PARA VEREDICTO Y PUNTOS CLAVE */}
+                                  <div style={{ marginTop: '0.5rem', borderTop: '1px dashed ' + (isDark ? '#2B251D' : 'rgba(23, 20, 15, 0.1)'), paddingTop: '0.65rem' }}>
+                                    <button
+                                      type="button"
+                                      onClick={() => setExpandedMejoresIndex(isExpanded ? null : idx)}
+                                      style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        color: isDark ? '#46C285' : '#0E6B41',
+                                        fontSize: '0.78rem',
+                                        fontWeight: 600,
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '0.35rem',
+                                        cursor: 'pointer',
+                                        padding: 0,
+                                      }}
+                                    >
+                                      <Icon name={isExpanded ? 'chevronUp' : 'chevronDown'} size={14} />
+                                      <span>{isExpanded ? 'Ocultar Opciones Avanzadas (Veredicto y Puntos)' : '⚙️ Opciones Avanzadas (Personalizar Veredicto y Puntos Clave)'}</span>
+                                    </button>
+
+                                    {isExpanded && (
+                                      <div style={{ marginTop: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                                        <div>
+                                          <label className="settings-label">Veredicto / Resumen Editorial</label>
+                                          <textarea
+                                            rows={2}
+                                            className="settings-input"
+                                            value={item.highlight || ''}
+                                            onChange={(e) => updateMejoresItemField(idx, 'highlight', e.target.value)}
+                                            placeholder="Explica brevemente por qué este proveedor gana en esta categoría..."
+                                          />
+                                        </div>
+
+                                        <div>
+                                          <label className="settings-label">Puntos Clave (separados por barra vertical |)</label>
+                                          <input
+                                            type="text"
+                                            className="settings-input"
+                                            value={Array.isArray(item.keyPoints) ? item.keyPoints.join(' | ') : (item.keyPoints || '')}
+                                            onChange={(e) => {
+                                              const points = e.target.value.split('|').map((s) => s.trim()).filter(Boolean);
+                                              updateMejoresItemField(idx, 'keyPoints', points);
+                                            }}
+                                            placeholder="Ej: Velocidad TTFB < 180ms | Dominio gratis 1er año | Garantía 30 días"
+                                          />
+                                          <span style={{ fontSize: '0.72rem', color: isDark ? '#9E9687' : 'var(--text-muted)' }}>
+                                            Usa el caracter de barra vertical | para separar cada punto clave.
+                                          </span>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     );
                   })()}
