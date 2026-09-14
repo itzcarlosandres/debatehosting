@@ -349,7 +349,7 @@ export const CuponesCatalog = ({ providers = [] }) => {
                   }}
                 >
                   {/* Columna Izquierda: Logo + Nombre + Descuento */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: '1 1 260px' }}>
+                  <div className="coupon-brand-info" style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: '1 1 260px' }}>
                     {prov?.logoUrl ? (
                       <img
                         src={normalizeImageUrl(prov.logoUrl)}
@@ -403,7 +403,7 @@ export const CuponesCatalog = ({ providers = [] }) => {
                   </div>
 
                   {/* Columna Central: Estado y Vencimiento */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontFamily: 'var(--font-mono)', fontSize: '0.78rem', flex: '0 1 180px' }}>
+                  <div className="coupon-meta-info" style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontFamily: 'var(--font-mono)', fontSize: '0.78rem', flex: '0 1 180px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                       {coupon.verified ? (
                         <span className="badge-tag badge-green" style={{ fontSize: '0.72rem' }}>
@@ -421,7 +421,7 @@ export const CuponesCatalog = ({ providers = [] }) => {
                   </div>
 
                   {/* Columna Derecha: Código + Botón Copiar + Enlace a Oferta */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap', flex: '0 0 auto' }}>
+                  <div className="coupon-card-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
                     <button
                       onClick={() => handleCopyCode(coupon)}
                       className={`coupon-copy-btn ${isCopied ? 'copied' : ''}`}

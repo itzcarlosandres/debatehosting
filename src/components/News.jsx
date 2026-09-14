@@ -3,11 +3,17 @@
 import React, { useState } from 'react';
 import { useToast } from '../context/ToastContext';
 import { Icon } from './Icon';
+import { DEFAULT_SECTION_HEADERS } from '@/lib/settingsDefaults';
 
-export const News = () => {
+export const News = ({ settings = {} }) => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const toast = useToast();
+
+  const header = {
+    ...DEFAULT_SECTION_HEADERS.news,
+    ...(settings?.sectionHeaders?.news || {}),
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -40,13 +46,13 @@ export const News = () => {
       <div className="container">
         <div className="newsletter-card">
           <div className="newsletter-text">
-            <div className="kicker">BOLETÍN PARA DESARROLLADORES Y CREADORES</div>
-            <h3>El Debate Semanal.</h3>
-            <p>
-              Una entrega dominical con bajadas históricas de precios de VPS, auditorías
-              de rendimiento y alertas sobre proveedores que recortan recursos en silencio.
-              Cero spam, baja en un clic.
-            </p>
+            {header.kicker && <div className="kicker">{header.kicker}</div>}
+            <h3>
+              {header.titleBefore ? `${header.titleBefore} ` : ''}
+              {header.titleHighlight && <span className="italic-serif">{header.titleHighlight}</span>}
+              {header.titleAfter ? ` ${header.titleAfter}` : ''}
+            </h3>
+            {header.subtitle && <p>{header.subtitle}</p>}
           </div>
 
           <form onSubmit={handleSubmit} className="newsletter-form">

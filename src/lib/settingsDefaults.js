@@ -1,0 +1,165 @@
+export const DEFAULT_HERO_SETTINGS = {
+  // Antetítulo
+  showKicker: true,
+  kickerText: 'OBSERVATORIO DE HOSTING Y NUBE',
+  kicker: 'OBSERVATORIO DE HOSTING Y NUBE',
+  kickerIcon: 'sparkles',
+  // Titular en 3 partes
+  titleBefore: 'El gran',
+  titleHighlight: 'debate',
+  titleAfter: 'del hosting.',
+  description:
+    'Comparamos proveedores en vivo sin sesgos ni publicidad encubierta. Ajusta tus prioridades en La Balanza, analiza las métricas de rendimiento y decide quién se queda con tu proyecto.',
+  // Botones CTA
+  showPrimaryBtn: true,
+  primaryBtnText: 'Pesar Proveedores',
+  primaryBtnUrl: '#balanza',
+  primaryBtnIcon: 'scale',
+  primaryCtaVisible: true,
+  primaryCtaText: 'Pesar Proveedores',
+  primaryCtaLink: '#balanza',
+  primaryCtaIcon: 'scale',
+  showSecondaryBtn: true,
+  secondaryBtnText: 'Ver Ofertas',
+  secondaryBtnUrl: '#ofertas',
+  secondaryBtnIcon: 'arrowRight',
+  secondaryCtaVisible: true,
+  secondaryCtaText: 'Ver Ofertas',
+  secondaryCtaLink: '#ofertas',
+  secondaryCtaIcon: 'arrowRight',
+  // Contadores
+  showCounters: true,
+  countersMode: 'auto', // 'auto' | 'manual'
+  stat1Auto: true,
+  stat1Visible: true,
+  counter1Value: 12,
+  stat1Count: 12,
+  counter1Label: 'Proveedores analizados',
+  stat1Label: 'Proveedores analizados',
+  stat2Auto: true,
+  stat2Visible: true,
+  counter2Value: 7,
+  stat2Count: 7,
+  counter2Label: 'Cupones verificados',
+  stat2Label: 'Cupones verificados',
+  stat3Visible: true,
+  counter3Value: 0,
+  stat3Count: '0',
+  counter3Label: 'Patrocinios pagados',
+  stat3Label: 'Patrocinios pagados',
+  // Tarjeta de Duelo / Comparativa en vivo
+  showPreviewCard: true,
+  previewCardTitle: 'COMPARATIVA EDITORIAL EN VIVO',
+  previewTitle: 'COMPARATIVA EDITORIAL EN VIVO',
+  previewCardBadge: 'EN VIVO',
+  previewBadge: 'EN VIVO',
+  fighter1Name: 'Hostinger',
+  previewProvider1Name: 'Hostinger',
+  fighter1Price: '$2.49/mes',
+  previewProvider1Sub: '$2.49/mes',
+  fighter2Name: 'SiteGround',
+  previewProvider2Name: 'SiteGround',
+  fighter2Price: '$3.99/mes',
+  previewProvider2Sub: '$3.99/mes',
+  metric1Label: 'Rendimiento web',
+  metric1Scores: '9.4 vs 8.8',
+  previewProvider1Metric: '9.4 vs 8.8',
+  metric1Fill: 74,
+  previewProvider1Percent: 74,
+  metric2Label: 'Soporte técnico',
+  metric2Scores: '7.5 vs 9.5',
+  previewProvider2Metric: '7.5 vs 9.5',
+  metric2Fill: 85,
+  previewProvider2Percent: 85,
+  previewBtnText: 'Explorar en La Balanza',
+  previewFooterText: 'Explorar en La Balanza',
+  previewBtnUrl: '#balanza',
+  previewFooterLink: '#balanza',
+};
+
+export const DEFAULT_SECTION_HEADERS = {
+  podio: {
+    kicker: 'VEREDICTO DE LA REDACCIÓN',
+    titleBefore: 'Nuestro podio,',
+    titleHighlight: 'sin tapujos.',
+    titleAfter: '',
+    subtitle:
+      'Basado en miles de pruebas reales de rendimiento, caídas simuladas y tickets técnicos a las 3:00 AM. Los tres elegidos que recomendamos a amigos y clientes.',
+  },
+  ofertas: {
+    kicker: 'RADAR Y DIRECTORIO DE HOSTING',
+    titleBefore: 'Todas las ofertas,',
+    titleHighlight: 'en una mesa.',
+    titleAfter: '',
+    subtitle:
+      'Filtra por tipo de infraestructura, compara precios reales de renovación y aprovecha los códigos de descuento negociados directamente con cada empresa.',
+  },
+  balanza: {
+    kicker: 'CALIBRADOR INTERACTIVO',
+    titleBefore: '¿Qué es',
+    titleHighlight: 'importante',
+    titleAfter: 'para ti?',
+    subtitle:
+      'Ajusta los 4 controles según las prioridades de tu web. Nuestra balanza recalcula automáticamente el ranking y la puntuación de cada proveedor en vivo.',
+  },
+  cupones: {
+    kicker: 'CUPONES Y CÓDIGOS DE DESCUENTO',
+    titleBefore: 'Cupones que',
+    titleHighlight: 'funcionan',
+    titleAfter: 'de verdad.',
+    subtitle:
+      'Acuerdos directos y rebajas comprobadas a mano. Copia el código para desbloquear el acceso preferente a la plataforma de cada proveedor.',
+  },
+  news: {
+    kicker: 'BOLETÍN PARA DESARROLLADORES Y CREADORES',
+    titleBefore: 'El Debate',
+    titleHighlight: 'Semanal.',
+    titleAfter: '',
+    subtitle:
+      'Una entrega dominical con bajadas históricas de precios de VPS, auditorías de rendimiento y alertas sobre proveedores que recortan recursos en silencio. Cero spam, baja en un clic.',
+  },
+};
+
+export const DEFAULT_SETTINGS = {
+  siteName: 'Debatehosting',
+  siteTagline: 'El Gran Observatorio de Hosting, VPS y Cupones',
+  siteUrl: 'https://debatehosting.com',
+  contactEmail: 'redaccion@debatehosting.com',
+  currency: '$',
+  faviconUrl: '/favicon.ico',
+  logoUrl: '',
+  iconUrl: '/icon.png',
+  ogImageUrl: '/og-image.png',
+  logoType: 'icon_text', // 'icon_text' | 'image' | 'text'
+  logoIcon: 'rocket',
+  logoTextPrefix: 'Debate',
+  logoTextHighlight: 'hosting',
+  logoColor: '#0E6B41',
+  defaultMetaDescription:
+    'Medio editorial y comparador técnico independiente de hosting web, servidores VPS, cloud y cupones verificados. Medición real de latencia TTFB, uptime y relación calidad-precio sin tapujos.',
+  defaultKeywords:
+    'hosting web, mejor hosting espana, comparativa hosting, vps baratos, cupones hosting, hosting wordpress, test ttfb',
+  affiliateRel: 'sponsored noopener noreferrer',
+  disclosureNotice:
+    'Debatehosting se financia mediante enlaces de afiliación regulados. Al contratar a través de nuestros enlaces, podemos recibir una comisión sin coste adicional para ti. Esto nunca afecta a la objetividad de nuestros análisis ni a las posiciones del ranking.',
+  ttfbEngineVersion: 'v2.4 (OpenTelemetry Engine)',
+  maintenanceMode: false,
+  enableComments: false,
+  autoVerifyCoupons: true,
+  hero: DEFAULT_HERO_SETTINGS,
+  sectionHeaders: DEFAULT_SECTION_HEADERS,
+  // Cinta de Noticias / Marquesina Global
+  showTicker: true,
+  // Barra Superior / Ticker
+  showTopBar: true,
+  topBarBadge: 'RADAR ACTIVO',
+  topBarText: '14 Proveedores de Hosting bajo auditoría de rendimiento en tiempo real',
+  topBarRightBadge: '100% INDEPENDIENTE',
+  topBarRightText: 'EDICIÓN 2026',
+  // Analítica, Search Console & Inyecciones de Código
+  googleAnalyticsId: '',
+  googleSearchConsoleCode: '',
+  geminiApiKey: '',
+  customHeadCode: '',
+  customBodyCode: '',
+};

@@ -3,8 +3,15 @@
 import React, { useState, useMemo } from 'react';
 import { Icon } from './Icon';
 import { normalizeImageUrl } from '@/lib/imageHelper';
+import { DEFAULT_SECTION_HEADERS } from '@/lib/settingsDefaults';
 
-export const Balanza = ({ providers = [] }) => {
+export const Balanza = ({ providers = [], settings = {}, isPage = false }) => {
+  const header = {
+    ...DEFAULT_SECTION_HEADERS.balanza,
+    ...(settings?.sectionHeaders?.balanza || {}),
+  };
+
+  const [activePreset, setActivePreset] = useState(null);
   const [weights, setWeights] = useState({
     precio: 35,
     rendimiento: 25,
@@ -13,6 +20,7 @@ export const Balanza = ({ providers = [] }) => {
   });
 
   const handleSliderChange = (key, value) => {
+    setActivePreset(null);
     setWeights((prev) => ({
       ...prev,
       [key]: parseInt(value, 10),
@@ -20,12 +28,33 @@ export const Balanza = ({ providers = [] }) => {
   };
 
   const handleReset = () => {
+    setActivePreset(null);
     setWeights({
       precio: 35,
       rendimiento: 25,
       soporte: 20,
       facilidad: 20,
     });
+  };
+
+  const applyPreset = (presetKey) => {
+    setActivePreset(presetKey);
+    switch (presetKey) {
+      case 'ecommerce':
+        setWeights({ precio: 15, rendimiento: 45, soporte: 25, facilidad: 15 });
+        break;
+      case 'speed':
+        setWeights({ precio: 10, rendimiento: 60, soporte: 20, facilidad: 10 });
+        break;
+      case 'blog':
+        setWeights({ precio: 35, rendimiento: 25, soporte: 15, facilidad: 25 });
+        break;
+      case 'budget':
+        setWeights({ precio: 60, rendimiento: 15, soporte: 15, facilidad: 10 });
+        break;
+      default:
+        handleReset();
+    }
   };
 
   const rankedProviders = useMemo(() => {
@@ -63,18 +92,60 @@ export const Balanza = ({ providers = [] }) => {
   };
 
   return (
-    <section id="balanza" className="balanza-section">
+    <section id="balanza" className="balanza-section" style={isPage ? { paddingTop: '2.5rem' } : undefined}>
       <div className="container">
-        <div className="kicker" style={{ color: 'var(--green-bright)' }}>
-          LA BALANZA: COMPARADOR INTERACTIVO
+        {!isPage && (
+          <>
+            {header.kicker && (
+              <div className="kicker" style={{ color: 'var(--green-bright)' }}>
+                {header.kicker}
+              </div>
+            )}
+            <h2>
+              {header.titleBefore ? `${header.titleBefore} ` : ''}
+              {header.titleHighlight && (
+                <span style={{ color: 'var(--green-bright)', fontStyle: 'italic' }}>
+                  {header.titleHighlight}
+                </span>
+              )}
+              {header.titleAfter ? ` ${header.titleAfter}` : ''}
+            </h2>
+            {header.subtitle && <p className="sub">{header.subtitle}</p>}
+          </>
+        )}
+
+        {/* Barra de Presets Rápidos */}
+        <div className="balanza-presets-bar">
+          <span className="balanza-presets-title">⚡ Perfiles Rápidos:</span>
+          <button
+            type="button"
+            className={`balanza-preset-chip ${activePreset === 'ecommerce' ? 'active' : ''}`}
+            onClick={() => applyPreset('ecommerce')}
+          >
+            🛒 Tienda Online / WooCommerce
+          </button>
+          <button
+            type="button"
+            className={`balanza-preset-chip ${activePreset === 'speed' ? 'active' : ''}`}
+            onClick={() => applyPreset('speed')}
+          >
+            ⚡ Máxima Velocidad (TTFB)
+          </button>
+          <button
+            type="button"
+            className={`balanza-preset-chip ${activePreset === 'blog' ? 'active' : ''}`}
+            onClick={() => applyPreset('blog')}
+          >
+            📝 Blog / Web Personal
+          </button>
+          <button
+            type="button"
+            className={`balanza-preset-chip ${activePreset === 'budget' ? 'active' : ''}`}
+            onClick={() => applyPreset('budget')}
+          >
+            💰 Máximo Ahorro
+          </button>
         </div>
-        <h2>
-          ¿Qué es <span style={{ color: 'var(--green-bright)', fontStyle: 'italic' }}>importante</span> para ti?
-        </h2>
-        <p className="sub">
-          Ajusta los 4 controles según las prioridades de tu web. Nuestra balanza recalcula
-          automáticamente el ranking y la puntuación de cada proveedor en vivo.
-        </p>
 
         <div className="balanza-grid">
           {/* Panel Izquierdo: 4 Sliders */}

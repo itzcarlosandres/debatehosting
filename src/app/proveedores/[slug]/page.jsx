@@ -83,9 +83,13 @@ export default async function ProveedorDetailPage({ params }) {
         id: true,
         name: true,
         slug: true,
+        logoUrl: true,
+        plan: true,
         uptime: true,
         priceFrom: true,
         period: true,
+        scoreRendimiento: true,
+        scorePrecio: true,
       },
     }),
     prisma.tickerItem.findMany({

@@ -3,9 +3,15 @@
 import React from 'react';
 import { Icon } from './Icon';
 import { normalizeImageUrl } from '@/lib/imageHelper';
+import { DEFAULT_SECTION_HEADERS } from '@/lib/settingsDefaults';
 
-export const Elegidos = ({ picks = [] }) => {
+export const Elegidos = ({ picks = [], settings = {} }) => {
   if (!picks || picks.length === 0) return null;
+
+  const header = {
+    ...DEFAULT_SECTION_HEADERS.podio,
+    ...(settings?.sectionHeaders?.podio || {}),
+  };
 
   const handleClaimOffer = async (provider) => {
     if (!provider) return;
@@ -205,14 +211,17 @@ export const Elegidos = ({ picks = [] }) => {
       <div className="container">
         {/* Cabecera Editorial */}
         <div className="section-header text-center">
-          <div className="kicker">VEREDICTO DE LA REDACCIÓN</div>
+          {header.kicker && <div className="kicker">{header.kicker}</div>}
           <h2>
-            Nuestro podio, <span className="italic-serif">sin tapujos.</span>
+            {header.titleBefore ? `${header.titleBefore} ` : ''}
+            {header.titleHighlight && <span className="italic-serif">{header.titleHighlight}</span>}
+            {header.titleAfter ? ` ${header.titleAfter}` : ''}
           </h2>
-          <p className="podio-subtitle">
-            Basado en miles de pruebas reales de rendimiento, caídas simuladas y tickets técnicos a las 3:00 AM.
-            Los tres elegidos que recomendamos a amigos y clientes.
-          </p>
+          {header.subtitle && (
+            <p className="podio-subtitle">
+              {header.subtitle}
+            </p>
+          )}
         </div>
 
         {/* Podio Olímpico de 3 Tarjetas: [Puesto 2 (izq), Puesto 1 (centro elevado), Puesto 3 (der)] */}

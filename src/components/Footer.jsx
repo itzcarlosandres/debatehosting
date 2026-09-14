@@ -116,128 +116,151 @@ export const Footer = ({ settings: initialSettings }) => {
             </p>
 
             <div className="footer-trust-seals">
-              <div className="trust-seal">
-                <span className="seal-icon">✓</span>
+              <div className="trust-seal-pill">
+                <span className="seal-check">✓</span>
                 <span>Pruebas 100% Reales</span>
               </div>
-              <div className="trust-seal">
-                <span className="seal-icon">✓</span>
+              <div className="trust-seal-pill">
+                <span className="seal-check">✓</span>
                 <span>Auditoría TTFB Abierta</span>
               </div>
-              <div className="trust-seal">
-                <span className="seal-icon">✓</span>
+              <div className="trust-seal-pill">
+                <span className="seal-check">✓</span>
                 <span>Sin Publicidad Engañosa</span>
               </div>
             </div>
           </div>
 
           {/* Columna 2: Observatorio & Herramientas */}
-          <div className="footer-nav-col">
-            <h5 className="footer-col-title">Observatorio</h5>
+          <div className="footer-nav-card">
+            <div className="footer-card-header">
+              <div className="footer-card-icon-wrap">
+                <Icon name="scale" size={14} color="var(--green-primary)" />
+              </div>
+              <h5 className="footer-col-title">Observatorio</h5>
+              <span className="footer-col-count">01</span>
+            </div>
             <ul className="footer-links-list">
               <li>
-                <a href="/#elegidos" className="footer-link">
-                  <span className="link-bullet">›</span>
-                  <span>El Podio Top 3</span>
-                </a>
-              </li>
-              <li>
-                <a href="/#ofertas" className="footer-link">
-                  <span className="link-bullet">›</span>
-                  <span>Radar de Ofertas</span>
-                </a>
-              </li>
-              <li>
-                <a href="/#balanza" className="footer-link">
-                  <span className="link-bullet">›</span>
-                  <span>La Balanza Algorítmica</span>
-                </a>
-              </li>
-              <li>
-                <Link href="/auditor" className="footer-link">
-                  <span className="link-bullet">›</span>
-                  <span>Auditor de Servidores TTFB</span>
-                  <span className="footer-mini-badge">LIVE</span>
+                <Link href="/balanza" className="footer-link-row">
+                  <span className="link-arrow">→</span>
+                  <span className="link-text">La Balanza (Calibrador)</span>
+                  <span className="footer-pill-tag">AI PRO</span>
                 </Link>
               </li>
               <li>
-                <Link href="/proveedores" className="footer-link">
-                  <span className="link-bullet">›</span>
-                  <span>Directorio de Proveedores</span>
+                <Link href="/auditor" className="footer-link-row">
+                  <span className="link-arrow">→</span>
+                  <span className="link-text">Auditor de Servidores</span>
+                  <span className="footer-mini-badge pulse-badge">LIVE</span>
                 </Link>
               </li>
               <li>
-                <Link href="/ofertas" className="footer-link">
-                  <span className="link-bullet">›</span>
-                  <span>Catálogo Completo 2026</span>
+                <Link href="/proveedores" className="footer-link-row">
+                  <span className="link-arrow">→</span>
+                  <span className="link-text">Directorio de Proveedores</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/cupones" className="footer-link-row">
+                  <span className="link-arrow">→</span>
+                  <span className="link-text">Cupones Verificados</span>
+                  <span className="footer-pill-tag tag-green">HOT</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/ofertas" className="footer-link-row">
+                  <span className="link-arrow">→</span>
+                  <span className="link-text">Radar de Ofertas</span>
                 </Link>
               </li>
             </ul>
           </div>
 
           {/* Columna 3: Categorías de Infraestructura */}
-          <div className="footer-nav-col">
-            <h5 className="footer-col-title">Infraestructura</h5>
+          <div className="footer-nav-card">
+            <div className="footer-card-header">
+              <div className="footer-card-icon-wrap">
+                <Icon name="server" size={14} color="var(--green-primary)" />
+              </div>
+              <h5 className="footer-col-title">Infraestructura</h5>
+              <span className="footer-col-count">02</span>
+            </div>
             <ul className="footer-links-list">
               <li>
-                <Link href="/ofertas?cat=wordpress" className="footer-link">
-                  <span className="link-bullet">›</span>
-                  <span>Hosting WordPress</span>
+                <Link href="/ofertas?cat=wordpress" className="footer-link-row">
+                  <span className="link-arrow">→</span>
+                  <span className="link-text">Hosting WordPress</span>
                 </Link>
               </li>
               <li>
-                <Link href="/ofertas?cat=vps" className="footer-link">
-                  <span className="link-bullet">›</span>
-                  <span>Servidores VPS NVMe</span>
+                <Link href="/ofertas?cat=vps" className="footer-link-row">
+                  <span className="link-arrow">→</span>
+                  <span className="link-text">Servidores VPS NVMe</span>
+                  <span className="footer-pill-tag">NVMe</span>
                 </Link>
               </li>
               <li>
-                <Link href="/ofertas?cat=cloud" className="footer-link">
-                  <span className="link-bullet">›</span>
-                  <span>Cloud de Alto Rendimiento</span>
+                <Link href="/ofertas?cat=cloud" className="footer-link-row">
+                  <span className="link-arrow">→</span>
+                  <span className="link-text">Cloud de Rendimiento</span>
                 </Link>
               </li>
               <li>
-                <Link href="/ofertas?cat=dominios" className="footer-link">
-                  <span className="link-bullet">›</span>
-                  <span>Registro de Dominios</span>
+                <Link href="/ofertas?cat=dominios" className="footer-link-row">
+                  <span className="link-arrow">→</span>
+                  <span className="link-text">Registro de Dominios</span>
                 </Link>
               </li>
               <li>
-                <Link href="/cupones" className="footer-link">
-                  <span className="link-bullet">›</span>
-                  <span>Cupones y Descuentos</span>
+                <Link href="/cupones" className="footer-link-row">
+                  <span className="link-arrow">→</span>
+                  <span className="link-text">Descuentos Activos</span>
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Columna 4: Legal & Ética */}
-          <div className="footer-nav-col">
-            <h5 className="footer-col-title">Legal & Ética</h5>
+          {/* Columna 4: Legal & Transparencia */}
+          <div className="footer-nav-card">
+            <div className="footer-card-header">
+              <div className="footer-card-icon-wrap">
+                <Icon name="shield" size={14} color="var(--green-primary)" />
+              </div>
+              <h5 className="footer-col-title">Transparencia</h5>
+              <span className="footer-col-count">03</span>
+            </div>
             <ul className="footer-links-list">
               <li>
-                <Link href="/auditor#metodo" className="footer-link">
-                  <span className="link-bullet">›</span>
-                  <span>Metodología de Pruebas</span>
+                <Link href="/auditor#metodo" className="footer-link-row">
+                  <span className="link-arrow">→</span>
+                  <span className="link-text">Metodología Editorial</span>
                 </Link>
               </li>
               <li>
-                <Link href="/terminos" className="footer-link">
-                  <span className="link-bullet">›</span>
-                  <span>Términos de Servicio</span>
+                <Link href="/afiliados" className="footer-link-row">
+                  <span className="link-arrow">→</span>
+                  <span className="link-text">Aviso de Afiliación</span>
+                  <span className="footer-pill-tag">ÉTICA</span>
                 </Link>
               </li>
               <li>
-                <Link href="/privacidad" className="footer-link">
-                  <span className="link-bullet">›</span>
-                  <span>Política de Privacidad</span>
+                <Link href="/terminos" className="footer-link-row">
+                  <span className="link-arrow">→</span>
+                  <span className="link-text">Términos de Servicio</span>
                 </Link>
               </li>
               <li>
-                <Link href="/afiliados" className="footer-link">
-                  <span className="link-bullet">›</span>
-                  <span>Aviso de Afiliación</span>
+                <Link href="/privacidad" className="footer-link-row">
+                  <span className="link-arrow">→</span>
+                  <span className="link-text">Política de Privacidad</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/admin" className="footer-link-row footer-admin-link">
+                  <span className="link-arrow">→</span>
+                  <span className="link-text">Consola Editorial</span>
+                  <Icon name="lock" size={12} />
                 </Link>
               </li>
             </ul>

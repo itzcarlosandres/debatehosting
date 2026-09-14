@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Icon } from '@/components/Icon';
 import { useToast } from '@/context/ToastContext';
 import { normalizeImageUrl } from '@/lib/imageHelper';
+import { DEFAULT_HERO_SETTINGS, DEFAULT_SECTION_HEADERS } from '@/lib/settingsDefaults';
 
 const AVAILABLE_CATEGORIES = [
   { id: 'hosting', label: 'Hosting web' },
@@ -20,6 +21,7 @@ const VALID_TABS = [
   'cupones',
   'categorias',
   'badges',
+  'hero',
   'elegidos',
   'ticker',
   'suscriptores',
@@ -27,6 +29,68 @@ const VALID_TABS = [
 ];
 
 const VALID_SETTINGS_SUBTABS = ['general', 'seo', 'afiliacion', 'seguridad', 'sistema'];
+
+const PORTADA_SUBTABS = [
+  { id: 'hero', label: 'Hero Principal', icon: 'sparkles' },
+  { id: 'podio', label: 'El Podio (Veredicto)', icon: 'trophy' },
+  { id: 'ofertas', label: 'Directorio de Ofertas', icon: 'layers' },
+  { id: 'balanza', label: 'La Balanza (Comparador)', icon: 'scale' },
+  { id: 'cupones', label: 'Cupones Verificados', icon: 'gem' },
+  { id: 'news', label: 'Boletín Semanal', icon: 'globe' },
+];
+
+const SECTION_METAS = {
+  podio: {
+    name: 'El Podio (Veredicto de la Redacción)',
+    desc: 'Encabezado del podio de honor con los 3 proveedores recomendados por el equipo editorial.',
+    icon: 'trophy',
+    kickerHint: 'Ej: VEREDICTO DE LA REDACCIÓN',
+    titleBeforeHint: 'Ej: Nuestro podio,',
+    titleHighlightHint: 'Ej: sin tapujos.',
+    titleAfterHint: '',
+    subtitleHint: 'Explicación del veredicto basada en miles de pruebas reales de rendimiento...',
+  },
+  ofertas: {
+    name: 'Directorio de Ofertas y Radar',
+    desc: 'Encabezado de la tabla principal y directorio de hosting con filtros de categoría.',
+    icon: 'layers',
+    kickerHint: 'Ej: RADAR Y DIRECTORIO DE HOSTING',
+    titleBeforeHint: 'Ej: Todas las ofertas,',
+    titleHighlightHint: 'Ej: en una mesa.',
+    titleAfterHint: '',
+    subtitleHint: 'Filtra por tipo de infraestructura, compara precios reales de renovación...',
+  },
+  balanza: {
+    name: 'La Balanza (Calibrador Interactivo)',
+    desc: 'Encabezado del simulador interactivo donde el usuario ajusta pesos de precio, velocidad y soporte.',
+    icon: 'scale',
+    kickerHint: 'Ej: CALIBRADOR INTERACTIVO o LA BALANZA',
+    titleBeforeHint: 'Ej: ¿Qué es',
+    titleHighlightHint: 'Ej: importante',
+    titleAfterHint: 'Ej: para ti?',
+    subtitleHint: 'Ajusta los 4 controles según las prioridades de tu web. Nuestra balanza recalcula...',
+  },
+  cupones: {
+    name: 'Cupones y Códigos Verificados',
+    desc: 'Encabezado del catálogo de cupones con comprobación de validez en tiempo real.',
+    icon: 'gem',
+    kickerHint: 'Ej: CUPONES Y CÓDIGOS DE DESCUENTO',
+    titleBeforeHint: 'Ej: Cupones que',
+    titleHighlightHint: 'Ej: funcionan',
+    titleAfterHint: 'Ej: de verdad.',
+    subtitleHint: 'Acuerdos directos y rebajas comprobadas a mano. Copia el código para desbloquear...',
+  },
+  news: {
+    name: 'El Debate Semanal (Newsletter)',
+    desc: 'Encabezado de la tarjeta de suscripción por correo electrónico para recibir bajadas de precios.',
+    icon: 'globe',
+    kickerHint: 'Ej: BOLETÍN PARA DESARROLLADORES Y CREADORES',
+    titleBeforeHint: 'Ej: El Debate',
+    titleHighlightHint: 'Ej: Semanal.',
+    titleAfterHint: '',
+    subtitleHint: 'Una entrega dominical con bajadas históricas de precios de VPS, auditorías...',
+  },
+};
 
 const LOGO_ICONS = [
   { id: 'rocket', label: 'Cohete' },
@@ -319,9 +383,19 @@ export default function AdminPage() {
     geminiApiKey: '',
     customHeadCode: '',
     customBodyCode: '',
+    hero: DEFAULT_HERO_SETTINGS,
+    sectionHeaders: DEFAULT_SECTION_HEADERS,
+    showTopBar: true,
+    showTicker: true,
+    topBarBadge: 'RADAR ACTIVO',
+    topBarText: '14 Proveedores de Hosting bajo auditoría de rendimiento en tiempo real',
+    topBarRightBadge: '100% INDEPENDIENTE',
+    topBarRightText: 'EDICIÓN 2026',
   });
   const [settingsSubtab, setSettingsSubtab] = useState('general');
+  const [portadaSubtab, setPortadaSubtab] = useState('hero');
   const [settingsSaving, setSettingsSaving] = useState(false);
+  const [heroSaving, setHeroSaving] = useState(false);
   const [resettingContent, setResettingContent] = useState(false);
   const [uploadingAsset, setUploadingAsset] = useState(null); // 'faviconUrl' | 'logoUrl' | 'iconUrl' | null
 
@@ -546,12 +620,17 @@ export default function AdminPage() {
         const res = await authFetch('/api/admin/picks');
         setPicks((await res.json()) || []);
       } else if (activeTab === 'ticker') {
-        const res = await authFetch('/api/admin/ticker');
-        setTickerItems((await res.json()) || []);
+        const [resT, resS] = await Promise.all([
+          authFetch('/api/admin/ticker'),
+          authFetch('/api/admin/settings'),
+        ]);
+        setTickerItems((await resT.json()) || []);
+        const sData = await resS.json();
+        if (sData) setSettingsData((prev) => ({ ...prev, ...sData }));
       } else if (activeTab === 'suscriptores') {
         const res = await authFetch('/api/admin/subscribers');
         setSubscribers((await res.json()) || []);
-      } else if (activeTab === 'settings') {
+      } else if (activeTab === 'settings' || activeTab === 'hero') {
         const res = await authFetch('/api/admin/settings');
         const data = await res.json();
         if (res.ok && data) {
@@ -580,6 +659,111 @@ export default function AdminPage() {
       toast.error(err.message || 'Error al guardar configuración.');
     } finally {
       setSettingsSaving(false);
+    }
+  };
+
+  const handleSaveHero = async (e) => {
+    if (e) e.preventDefault();
+    setHeroSaving(true);
+    try {
+      const res = await authFetch('/api/admin/settings', {
+        method: 'POST',
+        body: JSON.stringify(settingsData),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al guardar la portada');
+      toast.success('¡Portada & Hero actualizados con éxito!');
+    } catch (err) {
+      toast.error(err.message || 'Error al guardar la portada.');
+    } finally {
+      setHeroSaving(false);
+    }
+  };
+
+  const handleResetHero = () => {
+    if (window.confirm('¿Seguro que deseas restablecer todos los textos y diseño del Hero a los valores de fábrica?')) {
+      setSettingsData((prev) => ({
+        ...prev,
+        hero: { ...DEFAULT_HERO_SETTINGS },
+      }));
+      toast.info('Valores de fábrica cargados. Haz clic en "Guardar Portada" para aplicar los cambios.');
+    }
+  };
+
+  const heroData = {
+    ...DEFAULT_HERO_SETTINGS,
+    ...(settingsData?.hero || {}),
+  };
+
+  const updateHeroField = (field, value) => {
+    setSettingsData((prev) => ({
+      ...prev,
+      hero: {
+        ...DEFAULT_HERO_SETTINGS,
+        ...(prev?.hero || {}),
+        [field]: value,
+      },
+    }));
+  };
+
+  const sectionHeadersData = {
+    ...DEFAULT_SECTION_HEADERS,
+    ...(settingsData?.sectionHeaders || {}),
+    podio: {
+      ...DEFAULT_SECTION_HEADERS.podio,
+      ...(settingsData?.sectionHeaders?.podio || {}),
+    },
+    ofertas: {
+      ...DEFAULT_SECTION_HEADERS.ofertas,
+      ...(settingsData?.sectionHeaders?.ofertas || {}),
+    },
+    balanza: {
+      ...DEFAULT_SECTION_HEADERS.balanza,
+      ...(settingsData?.sectionHeaders?.balanza || {}),
+    },
+    cupones: {
+      ...DEFAULT_SECTION_HEADERS.cupones,
+      ...(settingsData?.sectionHeaders?.cupones || {}),
+    },
+    news: {
+      ...DEFAULT_SECTION_HEADERS.news,
+      ...(settingsData?.sectionHeaders?.news || {}),
+    },
+  };
+
+  const updateSectionHeaderField = (sectionKey, field, value) => {
+    setSettingsData((prev) => ({
+      ...prev,
+      sectionHeaders: {
+        ...DEFAULT_SECTION_HEADERS,
+        ...(prev?.sectionHeaders || {}),
+        [sectionKey]: {
+          ...(DEFAULT_SECTION_HEADERS[sectionKey] || {}),
+          ...(prev?.sectionHeaders?.[sectionKey] || {}),
+          [field]: value,
+        },
+      },
+    }));
+  };
+
+  const handleResetSectionHeader = (sectionKey) => {
+    const sectionLabels = {
+      podio: 'El Podio',
+      ofertas: 'Directorio de Ofertas',
+      balanza: 'La Balanza',
+      cupones: 'Cupones Verificados',
+      news: 'Boletín Semanal',
+    };
+    if (window.confirm(`¿Seguro que deseas restablecer el encabezado de "${sectionLabels[sectionKey] || sectionKey}" a los valores de fábrica?`)) {
+      setSettingsData((prev) => ({
+        ...prev,
+        sectionHeaders: {
+          ...DEFAULT_SECTION_HEADERS,
+          ...(prev?.sectionHeaders || {}),
+          [sectionKey]: { ...(DEFAULT_SECTION_HEADERS[sectionKey] || {}) },
+        },
+      }));
+      toast.info('Valores de fábrica cargados. Haz clic en "Guardar Portada" para aplicar los cambios.');
     }
   };
 
@@ -885,6 +1069,14 @@ export default function AdminPage() {
           {/* GRUPO 3: CURATORÍA EDITORIAL */}
           <div className="admin-nav-group">
             <span className="admin-nav-group-title">Editorial</span>
+            <button
+              onClick={() => handleTabChange('hero')}
+              className={`admin-nav-item ${activeTab === 'hero' ? 'active' : ''}`}
+            >
+              <Icon name="sparkles" size={16} />
+              <span>Portada & Secciones</span>
+            </button>
+
             <button
               onClick={() => handleTabChange('elegidos')}
               className={`admin-nav-item ${activeTab === 'elegidos' ? 'active' : ''}`}
@@ -3542,6 +3734,62 @@ export default function AdminPage() {
               </div>
             </div>
 
+            {/* Control Global On/Off de la Cinta / Ticker */}
+            <div className="admin-table-card" style={{ marginBottom: '1.75rem', padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', border: '1.5px solid ' + (settingsData.showTicker !== false ? '#46C285' : 'rgba(255,255,255,0.15)') }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                <div style={{
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: '8px',
+                  background: settingsData.showTicker !== false ? 'rgba(70, 194, 133, 0.15)' : '#24201A',
+                  color: settingsData.showTicker !== false ? '#46C285' : '#9E9687',
+                  border: '1px solid ' + (settingsData.showTicker !== false ? '#46C285' : '#383127'),
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <Icon name="sparkles" size={20} />
+                </div>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '1.08rem', color: isDark ? '#FAF7EE' : 'var(--text-ink)', fontWeight: 700 }}>
+                    Visibilidad Global de la Cinta / Ticker en la Web
+                  </h4>
+                  <p style={{ margin: 0, fontSize: '0.84rem', color: 'var(--text-muted)' }}>
+                    {settingsData.showTicker !== false
+                      ? 'La cinta de noticias en marquesina está actualmente VISIBLE en la parte superior de todas las páginas.'
+                      : 'La cinta de noticias en marquesina está actualmente OCULTA en toda la web.'}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={async () => {
+                  const newStatus = settingsData.showTicker === false ? true : false;
+                  const updated = { ...settingsData, showTicker: newStatus };
+                  setSettingsData(updated);
+                  try {
+                    const res = await authFetch('/api/admin/settings', {
+                      method: 'POST',
+                      body: JSON.stringify(updated),
+                    });
+                    if (res.ok) {
+                      toast.success(newStatus ? '¡Cinta / Ticker ACTIVADA en la web!' : '¡Cinta / Ticker DESACTIVADA en la web!');
+                    } else {
+                      toast.error('Error al actualizar el estado de la cinta.');
+                    }
+                  } catch (e) {
+                    toast.error('Error de red al guardar.');
+                  }
+                }}
+                className={`btn ${settingsData.showTicker !== false ? 'btn-primary' : 'btn-secondary'}`}
+                style={{ minWidth: '160px', padding: '0.6rem 1.2rem' }}
+              >
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: settingsData.showTicker !== false ? '#22C55E' : '#9E9687', display: 'inline-block' }}></span>
+                <span>{settingsData.showTicker !== false ? 'Cinta Activada' : 'Cinta Desactivada'}</span>
+              </button>
+            </div>
+
             <div className="admin-table-card" style={{ marginBottom: '2rem' }}>
               <div className="admin-table-card-header">
                 <h3 style={{ fontSize: '1.2rem' }}>Publicar Nuevo Titular</h3>
@@ -4514,6 +4762,112 @@ export default function AdminPage() {
                     </div>
                   </div>
 
+                  {/* ==========================================================================
+                      SECCIÓN: BARRA SUPERIOR DE NOTICIERO / TOP BAR TICKER
+                      ========================================================================== */}
+                  <div style={{ borderTop: '1px solid ' + (isDark ? '#241F18' : 'rgba(23, 20, 15, 0.1)'), paddingTop: '1.6rem', marginTop: '1.6rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+                      <div className="brand-section-header" style={{ marginBottom: 0 }}>
+                        <Icon name="sparkles" size={17} color={isDark ? '#46C285' : '#0E6B41'} />
+                        <span>Barra Superior de Noticiero (Top Bar Ticker)</span>
+                      </div>
+                      <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={settingsData.showTopBar !== false}
+                          onChange={(e) => setSettingsData({ ...settingsData, showTopBar: e.target.checked })}
+                          style={{ width: '18px', height: '18px', accentColor: '#46C285', cursor: 'pointer' }}
+                        />
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.82rem', fontWeight: 700, color: settingsData.showTopBar !== false ? (isDark ? '#46C285' : '#0E6B41') : 'var(--text-muted)' }}>
+                          {settingsData.showTopBar !== false ? 'ACTIVADA' : 'DESACTIVADA'}
+                        </span>
+                      </label>
+                    </div>
+
+                    <p className="settings-card-desc" style={{ marginBottom: '1.25rem' }}>
+                      Cinta informativa fijada en la parte más alta de la cabecera (arriba del menú) para emitir avisos en vivo, auditorías de servidores y sellos de independencia.
+                    </p>
+
+                    {settingsData.showTopBar !== false && (
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.2rem', marginBottom: '1.2rem' }}>
+                        <div className="settings-field">
+                          <label className="settings-label">Insignia Izquierda (Badge Pulsante)</label>
+                          <input
+                            type="text"
+                            className="settings-input"
+                            value={settingsData.topBarBadge || ''}
+                            onChange={(e) => setSettingsData({ ...settingsData, topBarBadge: e.target.value })}
+                            placeholder="RADAR ACTIVO"
+                          />
+                          <span className="settings-hint">Acompaña al punto verde pulsante en vivo.</span>
+                        </div>
+
+                        <div className="settings-field">
+                          <label className="settings-label">Texto Informativo Central</label>
+                          <input
+                            type="text"
+                            className="settings-input"
+                            value={settingsData.topBarText || ''}
+                            onChange={(e) => setSettingsData({ ...settingsData, topBarText: e.target.value })}
+                            placeholder="14 Proveedores de Hosting bajo auditoría de rendimiento en tiempo real"
+                          />
+                          <span className="settings-hint">Mensaje técnico o editorial principal.</span>
+                        </div>
+
+                        <div className="settings-field">
+                          <label className="settings-label">Insignia Derecha</label>
+                          <input
+                            type="text"
+                            className="settings-input"
+                            value={settingsData.topBarRightBadge || ''}
+                            onChange={(e) => setSettingsData({ ...settingsData, topBarRightBadge: e.target.value })}
+                            placeholder="100% INDEPENDIENTE"
+                          />
+                          <span className="settings-hint">Píldora destacada de rigor editorial.</span>
+                        </div>
+
+                        <div className="settings-field">
+                          <label className="settings-label">Texto Derecho (Fecha / Edición)</label>
+                          <input
+                            type="text"
+                            className="settings-input"
+                            value={settingsData.topBarRightText || ''}
+                            onChange={(e) => setSettingsData({ ...settingsData, topBarRightText: e.target.value })}
+                            placeholder="EDICIÓN 2026"
+                          />
+                          <span className="settings-hint">Sello de edición o actualización.</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ==========================================================================
+                      SECCIÓN: CINTA DE NOTICIAS / TICKER MARQUESINA
+                      ========================================================================== */}
+                  <div style={{ borderTop: '1px solid ' + (isDark ? '#241F18' : 'rgba(23, 20, 15, 0.1)'), paddingTop: '1.6rem', marginTop: '1.6rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                      <div className="brand-section-header" style={{ marginBottom: 0 }}>
+                        <Icon name="sparkles" size={17} color={isDark ? '#46C285' : '#0E6B41'} />
+                        <span>Cinta de Noticias en Marquesina (Ticker)</span>
+                      </div>
+                      <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={settingsData.showTicker !== false}
+                          onChange={(e) => setSettingsData({ ...settingsData, showTicker: e.target.checked })}
+                          style={{ width: '18px', height: '18px', accentColor: '#46C285', cursor: 'pointer' }}
+                        />
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.82rem', fontWeight: 700, color: settingsData.showTicker !== false ? (isDark ? '#46C285' : '#0E6B41') : 'var(--text-muted)' }}>
+                          {settingsData.showTicker !== false ? 'ACTIVADA' : 'DESACTIVADA'}
+                        </span>
+                      </label>
+                    </div>
+
+                    <p className="settings-card-desc">
+                      Controla si la cinta continua de titulares y noticias de última hora se muestra en la cabecera de todas las páginas públicas del sitio web.
+                    </p>
+                  </div>
+
                 </div>
 
                 <div className="settings-footer-actions">
@@ -5019,6 +5373,1362 @@ export default function AdminPage() {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* =========================================================================
+            PESTAÑA: PORTADA & HERO PERSONALIZABLE
+            ========================================================================= */}
+        {activeTab === 'hero' && (
+          <div className="admin-content-inner" style={{ maxWidth: '1240px', margin: '0 auto' }}>
+            {/* ENCABEZADO CON ACCIONES */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                <div style={{
+                  width: '46px',
+                  height: '46px',
+                  borderRadius: '12px',
+                  backgroundColor: isDark ? 'rgba(70, 194, 133, 0.12)' : 'rgba(14, 107, 65, 0.08)',
+                  border: '1.5px solid ' + (isDark ? 'rgba(70, 194, 133, 0.25)' : 'rgba(14, 107, 65, 0.15)'),
+                  color: isDark ? '#46C285' : '#0E6B41',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}>
+                  <Icon name="sparkles" size={24} color={isDark ? '#46C285' : '#0E6B41'} />
+                </div>
+                <div>
+                  <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.55rem', margin: 0, color: isDark ? '#FAF7EE' : 'var(--text-ink)' }}>
+                    Personalización de Portada & Secciones
+                  </h1>
+                  <p style={{ color: isDark ? '#9E9687' : 'var(--text-muted)', fontSize: '0.84rem', marginTop: '0.2rem', margin: 0 }}>
+                    Edita en vivo el Hero principal y los encabezados editoriales (antetítulo, titular con cursiva de énfasis y subtítulo) de todas las secciones.
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
+                <Link
+                  href="/"
+                  target="_blank"
+                  className="btn btn-secondary btn-sm"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+                >
+                  <Icon name="external" size={14} />
+                  <span>Ver en la Web</span>
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={portadaSubtab === 'hero' ? handleResetHero : () => handleResetSectionHeader(portadaSubtab)}
+                  className="btn btn-secondary btn-sm"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+                  title="Restablece los campos a la configuración original de Debatehosting"
+                >
+                  <Icon name="history" size={14} />
+                  <span>Restablecer Fábrica</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleSaveHero}
+                  disabled={heroSaving}
+                  className="btn btn-primary btn-sm"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    fontWeight: 700,
+                    boxShadow: '0 4px 12px rgba(14, 107, 65, 0.3)',
+                  }}
+                >
+                  <Icon name="save" size={14} />
+                  <span>{heroSaving ? 'Guardando...' : 'Guardar Portada & Secciones'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* SUB-PESTAÑAS DE SECCIONES DE LA PORTADA */}
+            <div style={{
+              display: 'flex',
+              gap: '0.45rem',
+              marginBottom: '1.5rem',
+              overflowX: 'auto',
+              paddingBottom: '0.4rem',
+              borderBottom: '1px solid ' + (isDark ? '#2B251D' : 'rgba(23, 20, 15, 0.1)'),
+            }}>
+              {PORTADA_SUBTABS.map((sub) => {
+                const isActive = portadaSubtab === sub.id;
+                return (
+                  <button
+                    key={sub.id}
+                    type="button"
+                    onClick={() => setPortadaSubtab(sub.id)}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.45rem',
+                      padding: '0.55rem 1rem',
+                      borderRadius: '6px',
+                      fontSize: '0.84rem',
+                      fontWeight: isActive ? 700 : 500,
+                      border: '1px solid ' + (isActive
+                        ? (isDark ? '#46C285' : '#0E6B41')
+                        : (isDark ? '#2B251D' : 'rgba(23, 20, 15, 0.12)')),
+                      backgroundColor: isActive
+                        ? (isDark ? 'rgba(70, 194, 133, 0.15)' : 'rgba(14, 107, 65, 0.08)')
+                        : (isDark ? '#1C1914' : '#FFFFFF'),
+                      color: isActive
+                        ? (isDark ? '#46C285' : '#0E6B41')
+                        : (isDark ? '#FAF7EE' : 'var(--text-ink)'),
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    <Icon name={sub.icon} size={15} color={isActive ? (isDark ? '#46C285' : '#0E6B41') : 'currentColor'} />
+                    <span>{sub.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* VISTA PREVIA Y FORMULARIO DE HERO PRINCIPAL */}
+            {portadaSubtab === 'hero' && (
+              <>
+            <div className="settings-card" style={{ marginBottom: '1.75rem', border: '1.5px solid ' + (isDark ? '#383025' : 'var(--border-ink)') }}>
+              <div className="settings-card-header" style={{ borderBottom: '1px solid ' + (isDark ? '#2B251D' : 'rgba(23, 20, 15, 0.08)'), paddingBottom: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Icon name="eye" size={16} color={isDark ? '#46C285' : '#0E6B41'} />
+                  <h2 className="settings-card-title" style={{ fontSize: '1rem', margin: 0 }}>Vista Previa en Vivo de la Portada</h2>
+                </div>
+                <span style={{ fontSize: '0.74rem', fontFamily: 'var(--font-mono)', color: isDark ? '#9E9687' : 'var(--text-muted)' }}>
+                  Se actualiza instantáneamente mientras escribes
+                </span>
+              </div>
+
+              {/* Contenedor Visual de la Portada */}
+              <div style={{
+                backgroundColor: isDark ? '#14110C' : '#FAF7EE',
+                borderRadius: '8px',
+                padding: '2rem 1.5rem',
+                border: '1px solid ' + (isDark ? '#2B251D' : 'rgba(23, 20, 15, 0.12)'),
+                color: isDark ? '#FAF7EE' : '#17140F',
+                position: 'relative',
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: heroData.showPreviewCard ? 'repeat(auto-fit, minmax(300px, 1fr))' : '1fr',
+                  gap: '2rem',
+                  alignItems: 'center'
+                }}>
+                  {/* Columna Izquierda: Textos y CTAs */}
+                  <div>
+                    {/* Kicker */}
+                    <div style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.45rem',
+                      padding: '0.35rem 0.75rem',
+                      borderRadius: '999px',
+                      backgroundColor: isDark ? 'rgba(70, 194, 133, 0.12)' : 'rgba(14, 107, 65, 0.08)',
+                      border: '1px solid ' + (isDark ? 'rgba(70, 194, 133, 0.25)' : 'rgba(14, 107, 65, 0.15)'),
+                      color: isDark ? '#46C285' : '#0E6B41',
+                      fontSize: '0.72rem',
+                      fontFamily: 'var(--font-mono)',
+                      fontWeight: 700,
+                      letterSpacing: '0.04em',
+                      marginBottom: '1rem'
+                    }}>
+                      <Icon name={heroData.kickerIcon || 'sparkles'} size={13} color="currentColor" />
+                      <span>{heroData.kicker || 'AUDITORÍA TÉCNICA INDEPENDIENTE'}</span>
+                    </div>
+
+                    {/* Titular */}
+                    <h1 style={{
+                      fontFamily: 'var(--font-serif)',
+                      fontSize: 'clamp(1.75rem, 3.5vw, 2.5rem)',
+                      fontWeight: 900,
+                      lineHeight: 1.15,
+                      letterSpacing: '-0.025em',
+                      margin: '0 0 1rem 0',
+                      color: isDark ? '#FAF7EE' : '#17140F'
+                    }}>
+                      {heroData.titleBefore}{' '}
+                      <em style={{
+                        fontStyle: 'italic',
+                        color: isDark ? '#46C285' : '#0E6B41',
+                        borderBottom: '2px solid currentColor'
+                      }}>
+                        {heroData.titleHighlight}
+                      </em>{' '}
+                      {heroData.titleAfter}
+                    </h1>
+
+                    {/* Descripción */}
+                    <p style={{
+                      fontSize: '0.95rem',
+                      lineHeight: 1.6,
+                      color: isDark ? '#A8A090' : '#4A453A',
+                      margin: '0 0 1.5rem 0',
+                      maxWidth: '560px'
+                    }}>
+                      {heroData.description}
+                    </p>
+
+                    {/* Botones CTAs */}
+                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1.75rem' }}>
+                      {heroData.primaryCtaVisible && (
+                        <div
+                          className="btn btn-primary"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.45rem',
+                            fontSize: '0.88rem',
+                            padding: '0.65rem 1.25rem',
+                            fontWeight: 700,
+                            borderRadius: '6px'
+                          }}
+                        >
+                          <span>{heroData.primaryCtaText}</span>
+                          <Icon name={heroData.primaryCtaIcon || 'arrowRight'} size={15} />
+                        </div>
+                      )}
+
+                      {heroData.secondaryCtaVisible && (
+                        <div
+                          className="btn btn-secondary"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.45rem',
+                            fontSize: '0.88rem',
+                            padding: '0.65rem 1.15rem',
+                            fontWeight: 600,
+                            borderRadius: '6px',
+                            backgroundColor: isDark ? '#1C1914' : '#FFFFFF',
+                            borderColor: isDark ? '#383025' : 'var(--border-ink)'
+                          }}
+                        >
+                          <Icon name={heroData.secondaryCtaIcon || 'cpu'} size={15} />
+                          <span>{heroData.secondaryCtaText}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Métricas / Trust Counters */}
+                    <div style={{
+                      display: 'flex',
+                      gap: '1.5rem',
+                      flexWrap: 'wrap',
+                      paddingTop: '1.25rem',
+                      borderTop: '1px solid ' + (isDark ? '#231E17' : 'rgba(23, 20, 15, 0.1)')
+                    }}>
+                      {heroData.stat1Visible && (
+                        <div>
+                          <div style={{
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '1.35rem',
+                            fontWeight: 800,
+                            color: isDark ? '#46C285' : '#0E6B41',
+                            lineHeight: 1
+                          }}>
+                            {heroData.stat1Auto ? (providers?.length || 12) : heroData.stat1Count}
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: isDark ? '#9E9687' : '#7A7265', marginTop: '0.2rem' }}>
+                            {heroData.stat1Label}
+                          </div>
+                        </div>
+                      )}
+
+                      {heroData.stat2Visible && (
+                        <div>
+                          <div style={{
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '1.35rem',
+                            fontWeight: 800,
+                            color: isDark ? '#46C285' : '#0E6B41',
+                            lineHeight: 1
+                          }}>
+                            {heroData.stat2Auto ? (coupons?.length || 7) : heroData.stat2Count}
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: isDark ? '#9E9687' : '#7A7265', marginTop: '0.2rem' }}>
+                            {heroData.stat2Label}
+                          </div>
+                        </div>
+                      )}
+
+                      {heroData.stat3Visible && (
+                        <div>
+                          <div style={{
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '1.35rem',
+                            fontWeight: 800,
+                            color: isDark ? '#46C285' : '#0E6B41',
+                            lineHeight: 1
+                          }}>
+                            {heroData.stat3Count}
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: isDark ? '#9E9687' : '#7A7265', marginTop: '0.2rem' }}>
+                            {heroData.stat3Label}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Columna Derecha: Tarjeta de Duelo (si está activa) */}
+                  {heroData.showPreviewCard && (
+                    <div style={{
+                      backgroundColor: isDark ? '#1C1914' : '#FFFFFF',
+                      borderRadius: '10px',
+                      border: '1.5px solid ' + (isDark ? '#383025' : 'var(--border-ink)'),
+                      padding: '1.35rem',
+                      boxShadow: isDark ? '0 12px 30px rgba(0,0,0,0.5)' : '0 12px 30px rgba(0,0,0,0.06)',
+                      maxWidth: '420px',
+                      width: '100%',
+                      margin: '0 auto'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <span style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '0.68rem',
+                          fontWeight: 700,
+                          padding: '0.2rem 0.5rem',
+                          borderRadius: '4px',
+                          backgroundColor: isDark ? 'rgba(70, 194, 133, 0.15)' : 'rgba(14, 107, 65, 0.1)',
+                          color: isDark ? '#46C285' : '#0E6B41',
+                          letterSpacing: '0.04em'
+                        }}>
+                          {heroData.previewBadge}
+                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.72rem', color: '#10B981' }}>
+                          <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#10B981', display: 'inline-block', boxShadow: '0 0 6px #10B981' }} />
+                          <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>ACTIVO</span>
+                        </div>
+                      </div>
+
+                      <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.15rem', margin: '0 0 1rem 0', color: isDark ? '#FAF7EE' : 'var(--text-ink)' }}>
+                        {heroData.previewTitle}
+                      </h3>
+
+                      {/* Contendiente 1 */}
+                      <div style={{ marginBottom: '1rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.35rem' }}>
+                          <div>
+                            <strong style={{ fontSize: '0.9rem', color: isDark ? '#FAF7EE' : 'var(--text-ink)' }}>
+                              {heroData.previewProvider1Name}
+                            </strong>
+                            <span style={{ fontSize: '0.75rem', color: isDark ? '#9E9687' : 'var(--text-muted)', marginLeft: '0.4rem' }}>
+                              {heroData.previewProvider1Sub}
+                            </span>
+                          </div>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', fontWeight: 700, color: isDark ? '#46C285' : '#0E6B41' }}>
+                            {heroData.previewProvider1Metric}
+                          </span>
+                        </div>
+                        <div style={{ width: '100%', height: '8px', backgroundColor: isDark ? '#2B251D' : '#EFECE6', borderRadius: '4px', overflow: 'hidden' }}>
+                          <div style={{ width: `${Math.min(100, Math.max(5, Number(heroData.previewProvider1Percent) || 88))}%`, height: '100%', backgroundColor: '#0E6B41', borderRadius: '4px' }} />
+                        </div>
+                      </div>
+
+                      {/* Contendiente 2 */}
+                      <div style={{ marginBottom: '1.25rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.35rem' }}>
+                          <div>
+                            <strong style={{ fontSize: '0.9rem', color: isDark ? '#FAF7EE' : 'var(--text-ink)' }}>
+                              {heroData.previewProvider2Name}
+                            </strong>
+                            <span style={{ fontSize: '0.75rem', color: isDark ? '#9E9687' : 'var(--text-muted)', marginLeft: '0.4rem' }}>
+                              {heroData.previewProvider2Sub}
+                            </span>
+                          </div>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', fontWeight: 700, color: isDark ? '#E5E0D4' : '#5C5446' }}>
+                            {heroData.previewProvider2Metric}
+                          </span>
+                        </div>
+                        <div style={{ width: '100%', height: '8px', backgroundColor: isDark ? '#2B251D' : '#EFECE6', borderRadius: '4px', overflow: 'hidden' }}>
+                          <div style={{ width: `${Math.min(100, Math.max(5, Number(heroData.previewProvider2Percent) || 82))}%`, height: '100%', backgroundColor: isDark ? '#4A4033' : '#B0A898', borderRadius: '4px' }} />
+                        </div>
+                      </div>
+
+                      <div style={{
+                        borderTop: '1px dashed ' + (isDark ? '#2B251D' : 'rgba(23, 20, 15, 0.15)'),
+                        paddingTop: '0.75rem',
+                        textAlign: 'center',
+                        fontSize: '0.78rem',
+                        color: isDark ? '#46C285' : '#0E6B41',
+                        fontWeight: 600,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.35rem'
+                      }}>
+                        <span>{heroData.previewFooterText}</span>
+                        <Icon name="arrowRight" size={13} />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* =========================================================================
+                FORMULARIO DE CONFIGURACIÓN DEL HERO (4 BLOQUES)
+                ========================================================================= */}
+
+            {/* BLOQUE 1: TEXTOS Y TITULAR PRINCIPAL */}
+            <div className="settings-card" style={{ marginBottom: '1.5rem' }}>
+              <div className="settings-card-header">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Icon name="type" size={18} color={isDark ? '#46C285' : '#0E6B41'} />
+                  <h2 className="settings-card-title" style={{ margin: 0 }}>1. Titular, Antetítulo y Bajada Editorial</h2>
+                </div>
+                <p className="settings-card-desc">
+                  Configura el gancho editorial principal con la cursiva estilizada característica de Debatehosting.
+                </p>
+              </div>
+
+              {/* Kicker */}
+              <div className="settings-grid-2" style={{ marginBottom: '1.25rem' }}>
+                <div className="settings-field">
+                  <label className="settings-label">Texto del Antetítulo (Kicker)</label>
+                  <input
+                    type="text"
+                    className="settings-input"
+                    value={heroData.kicker}
+                    onChange={(e) => updateHeroField('kicker', e.target.value)}
+                    placeholder="AUDITORÍA TÉCNICA INDEPENDIENTE · SERVIDORES 2026"
+                  />
+                  <span className="settings-hint">Etiqueta superior en cápsula destacada.</span>
+                </div>
+
+                <div className="settings-field">
+                  <label className="settings-label">Ícono del Antetítulo</label>
+                  <select
+                    className="settings-select"
+                    value={heroData.kickerIcon || 'sparkles'}
+                    onChange={(e) => updateHeroField('kickerIcon', e.target.value)}
+                  >
+                    <option value="sparkles">Brillo (Sparkles)</option>
+                    <option value="zap">Rayo (Zap)</option>
+                    <option value="flame">Fuego (Flame)</option>
+                    <option value="trophy">Trofeo (Trophy)</option>
+                    <option value="shield">Escudo (Shield)</option>
+                    <option value="scale">Balanza (Scale)</option>
+                    <option value="rocket">Cohete (Rocket)</option>
+                    <option value="cpu">Procesador (CPU)</option>
+                  </select>
+                  <span className="settings-hint">Ícono que precede al texto del antetítulo.</span>
+                </div>
+              </div>
+
+              {/* Titular en 3 Segmentos */}
+              <div style={{ marginBottom: '1.25rem' }}>
+                <label className="settings-label" style={{ fontSize: '0.88rem', fontWeight: 700, marginBottom: '0.5rem', display: 'block' }}>
+                  Titular Principal (Estructura Editorial en 3 Partes)
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+                  <div className="settings-field">
+                    <label className="settings-label" style={{ fontSize: '0.78rem' }}>Parte 1: Antes del Énfasis</label>
+                    <input
+                      type="text"
+                      className="settings-input"
+                      value={heroData.titleBefore}
+                      onChange={(e) => updateHeroField('titleBefore', e.target.value)}
+                      placeholder="¿Hosting bueno o"
+                    />
+                  </div>
+
+                  <div className="settings-field">
+                    <label className="settings-label" style={{ fontSize: '0.78rem', color: isDark ? '#46C285' : '#0E6B41' }}>
+                      Parte 2: Destacada (Cursiva / Énfasis)
+                    </label>
+                    <input
+                      type="text"
+                      className="settings-input"
+                      style={{ borderColor: isDark ? '#46C285' : '#0E6B41', fontWeight: 600 }}
+                      value={heroData.titleHighlight}
+                      onChange={(e) => updateHeroField('titleHighlight', e.target.value)}
+                      placeholder="puro marketing"
+                    />
+                  </div>
+
+                  <div className="settings-field">
+                    <label className="settings-label" style={{ fontSize: '0.78rem' }}>Parte 3: Después del Énfasis</label>
+                    <input
+                      type="text"
+                      className="settings-input"
+                      value={heroData.titleAfter}
+                      onChange={(e) => updateHeroField('titleAfter', e.target.value)}
+                      placeholder="? Medimos lo que nadie te cuenta."
+                    />
+                  </div>
+                </div>
+                <span className="settings-hint" style={{ marginTop: '0.35rem' }}>
+                  Resultado combinado: <strong>{heroData.titleBefore} <span style={{ color: isDark ? '#46C285' : '#0E6B41', fontStyle: 'italic' }}>{heroData.titleHighlight}</span> {heroData.titleAfter}</strong>
+                </span>
+              </div>
+
+              {/* Descripción */}
+              <div className="settings-field">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <label className="settings-label">Descripción / Bajada Editorial</label>
+                  <span style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: isDark ? '#9E9687' : 'var(--text-muted)' }}>
+                    {(heroData.description || '').length} caracteres
+                  </span>
+                </div>
+                <textarea
+                  className="settings-textarea"
+                  rows={3}
+                  value={heroData.description}
+                  onChange={(e) => updateHeroField('description', e.target.value)}
+                  placeholder="Comparamos hosting web, cloud y VPS con telemetría real..."
+                />
+                <span className="settings-hint">Explica el valor diferencial técnico y la independencia del portal.</span>
+              </div>
+            </div>
+
+            {/* BLOQUE 2: BOTONES DE LLAMADA A LA ACCIÓN (CTAs) */}
+            <div className="settings-card" style={{ marginBottom: '1.5rem' }}>
+              <div className="settings-card-header">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Icon name="arrowRight" size={18} color={isDark ? '#46C285' : '#0E6B41'} />
+                  <h2 className="settings-card-title" style={{ margin: 0 }}>2. Botones de Acción (CTAs)</h2>
+                </div>
+                <p className="settings-card-desc">
+                  Personaliza los enlaces directos a comparativas, rankings o herramientas de auditoría.
+                </p>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+                {/* Botón Primario */}
+                <div style={{
+                  padding: '1.25rem',
+                  borderRadius: '8px',
+                  backgroundColor: isDark ? '#14110C' : '#F9F7F1',
+                  border: '1px solid ' + (isDark ? '#2B251D' : 'rgba(23, 20, 15, 0.1)')
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
+                    <strong style={{ fontSize: '0.9rem', color: isDark ? '#46C285' : '#0E6B41' }}>Botón Principal (Verde Sólido)</strong>
+                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontSize: '0.8rem' }}>
+                      <input
+                        type="checkbox"
+                        checked={heroData.primaryCtaVisible}
+                        onChange={(e) => updateHeroField('primaryCtaVisible', e.target.checked)}
+                      />
+                      <span>Visible</span>
+                    </label>
+                  </div>
+
+                  <div className="settings-field">
+                    <label className="settings-label">Texto del Botón</label>
+                    <input
+                      type="text"
+                      className="settings-input"
+                      value={heroData.primaryCtaText}
+                      onChange={(e) => updateHeroField('primaryCtaText', e.target.value)}
+                      placeholder="Ver Ranking de Proveedores"
+                    />
+                  </div>
+
+                  <div className="settings-field">
+                    <label className="settings-label">Enlace / Destino</label>
+                    <input
+                      type="text"
+                      className="settings-input"
+                      value={heroData.primaryCtaLink}
+                      onChange={(e) => updateHeroField('primaryCtaLink', e.target.value)}
+                      placeholder="#ranking o /proveedores"
+                    />
+                  </div>
+
+                  <div className="settings-field">
+                    <label className="settings-label">Ícono del Botón</label>
+                    <select
+                      className="settings-select"
+                      value={heroData.primaryCtaIcon || 'arrowRight'}
+                      onChange={(e) => updateHeroField('primaryCtaIcon', e.target.value)}
+                    >
+                      <option value="arrowRight">Flecha Derecha (arrowRight)</option>
+                      <option value="sparkles">Brillo (sparkles)</option>
+                      <option value="trophy">Trofeo (trophy)</option>
+                      <option value="zap">Rayo (zap)</option>
+                      <option value="flame">Fuego (flame)</option>
+                      <option value="shield">Escudo (shield)</option>
+                      <option value="rocket">Cohete (rocket)</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Botón Secundario */}
+                <div style={{
+                  padding: '1.25rem',
+                  borderRadius: '8px',
+                  backgroundColor: isDark ? '#14110C' : '#F9F7F1',
+                  border: '1px solid ' + (isDark ? '#2B251D' : 'rgba(23, 20, 15, 0.1)')
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
+                    <strong style={{ fontSize: '0.9rem', color: isDark ? '#FAF7EE' : 'var(--text-ink)' }}>Botón Secundario (Borde / Minimalista)</strong>
+                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontSize: '0.8rem' }}>
+                      <input
+                        type="checkbox"
+                        checked={heroData.secondaryCtaVisible}
+                        onChange={(e) => updateHeroField('secondaryCtaVisible', e.target.checked)}
+                      />
+                      <span>Visible</span>
+                    </label>
+                  </div>
+
+                  <div className="settings-field">
+                    <label className="settings-label">Texto del Botón</label>
+                    <input
+                      type="text"
+                      className="settings-input"
+                      value={heroData.secondaryCtaText}
+                      onChange={(e) => updateHeroField('secondaryCtaText', e.target.value)}
+                      placeholder="Auditoría en Directo"
+                    />
+                  </div>
+
+                  <div className="settings-field">
+                    <label className="settings-label">Enlace / Destino</label>
+                    <input
+                      type="text"
+                      className="settings-input"
+                      value={heroData.secondaryCtaLink}
+                      onChange={(e) => updateHeroField('secondaryCtaLink', e.target.value)}
+                      placeholder="/auditor o /ofertas"
+                    />
+                  </div>
+
+                  <div className="settings-field">
+                    <label className="settings-label">Ícono del Botón</label>
+                    <select
+                      className="settings-select"
+                      value={heroData.secondaryCtaIcon || 'cpu'}
+                      onChange={(e) => updateHeroField('secondaryCtaIcon', e.target.value)}
+                    >
+                      <option value="cpu">Procesador (cpu)</option>
+                      <option value="terminal">Consola (terminal)</option>
+                      <option value="code">Código (code)</option>
+                      <option value="compass">Brújula (compass)</option>
+                      <option value="globe">Mundo (globe)</option>
+                      <option value="server">Servidor (server)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* BLOQUE 3: MÉTRICAS Y CONTADORES ESTADÍSTICOS */}
+            <div className="settings-card" style={{ marginBottom: '1.5rem' }}>
+              <div className="settings-card-header">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Icon name="clock" size={18} color={isDark ? '#46C285' : '#0E6B41'} />
+                  <h2 className="settings-card-title" style={{ margin: 0 }}>3. Contadores de Confianza y Telemetría</h2>
+                </div>
+                <p className="settings-card-desc">
+                  Muestra cifras en vivo (calculadas de tu base de datos) o números fijos para reforzar la credibilidad técnica.
+                </p>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
+                {/* Métrica 1 */}
+                <div style={{
+                  padding: '1.2rem',
+                  borderRadius: '8px',
+                  backgroundColor: isDark ? '#14110C' : '#F9F7F1',
+                  border: '1px solid ' + (isDark ? '#2B251D' : 'rgba(23, 20, 15, 0.1)')
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                    <strong style={{ fontSize: '0.88rem' }}>Contador 1: Proveedores</strong>
+                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer', fontSize: '0.78rem' }}>
+                      <input
+                        type="checkbox"
+                        checked={heroData.stat1Visible}
+                        onChange={(e) => updateHeroField('stat1Visible', e.target.checked)}
+                      />
+                      <span>Visible</span>
+                    </label>
+                  </div>
+
+                  <div style={{ marginBottom: '0.8rem' }}>
+                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600 }}>
+                      <input
+                        type="checkbox"
+                        checked={heroData.stat1Auto}
+                        onChange={(e) => updateHeroField('stat1Auto', e.target.checked)}
+                      />
+                      <span>Contar proveedores reales de la BD ({providers?.length || 0})</span>
+                    </label>
+                  </div>
+
+                  {!heroData.stat1Auto && (
+                    <div className="settings-field">
+                      <label className="settings-label">Valor Manual</label>
+                      <input
+                        type="number"
+                        className="settings-input"
+                        value={heroData.stat1Count}
+                        onChange={(e) => updateHeroField('stat1Count', e.target.value)}
+                        placeholder="12"
+                      />
+                    </div>
+                  )}
+
+                  <div className="settings-field">
+                    <label className="settings-label">Etiqueta Inferior</label>
+                    <input
+                      type="text"
+                      className="settings-input"
+                      value={heroData.stat1Label}
+                      onChange={(e) => updateHeroField('stat1Label', e.target.value)}
+                      placeholder="Proveedores analizados"
+                    />
+                  </div>
+                </div>
+
+                {/* Métrica 2 */}
+                <div style={{
+                  padding: '1.2rem',
+                  borderRadius: '8px',
+                  backgroundColor: isDark ? '#14110C' : '#F9F7F1',
+                  border: '1px solid ' + (isDark ? '#2B251D' : 'rgba(23, 20, 15, 0.1)')
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                    <strong style={{ fontSize: '0.88rem' }}>Contador 2: Cupones</strong>
+                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer', fontSize: '0.78rem' }}>
+                      <input
+                        type="checkbox"
+                        checked={heroData.stat2Visible}
+                        onChange={(e) => updateHeroField('stat2Visible', e.target.checked)}
+                      />
+                      <span>Visible</span>
+                    </label>
+                  </div>
+
+                  <div style={{ marginBottom: '0.8rem' }}>
+                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600 }}>
+                      <input
+                        type="checkbox"
+                        checked={heroData.stat2Auto}
+                        onChange={(e) => updateHeroField('stat2Auto', e.target.checked)}
+                      />
+                      <span>Contar cupones activos de la BD ({coupons?.length || 0})</span>
+                    </label>
+                  </div>
+
+                  {!heroData.stat2Auto && (
+                    <div className="settings-field">
+                      <label className="settings-label">Valor Manual</label>
+                      <input
+                        type="number"
+                        className="settings-input"
+                        value={heroData.stat2Count}
+                        onChange={(e) => updateHeroField('stat2Count', e.target.value)}
+                        placeholder="7"
+                      />
+                    </div>
+                  )}
+
+                  <div className="settings-field">
+                    <label className="settings-label">Etiqueta Inferior</label>
+                    <input
+                      type="text"
+                      className="settings-input"
+                      value={heroData.stat2Label}
+                      onChange={(e) => updateHeroField('stat2Label', e.target.value)}
+                      placeholder="Cupones verificados hoy"
+                    />
+                  </div>
+                </div>
+
+                {/* Métrica 3 */}
+                <div style={{
+                  padding: '1.2rem',
+                  borderRadius: '8px',
+                  backgroundColor: isDark ? '#14110C' : '#F9F7F1',
+                  border: '1px solid ' + (isDark ? '#2B251D' : 'rgba(23, 20, 15, 0.1)')
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                    <strong style={{ fontSize: '0.88rem' }}>Contador 3: Frecuencia / Uptime</strong>
+                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer', fontSize: '0.78rem' }}>
+                      <input
+                        type="checkbox"
+                        checked={heroData.stat3Visible}
+                        onChange={(e) => updateHeroField('stat3Visible', e.target.checked)}
+                      />
+                      <span>Visible</span>
+                    </label>
+                  </div>
+
+                  <div className="settings-field">
+                    <label className="settings-label">Valor o Indicador</label>
+                    <input
+                      type="text"
+                      className="settings-input"
+                      value={heroData.stat3Count}
+                      onChange={(e) => updateHeroField('stat3Count', e.target.value)}
+                      placeholder="60s o 99.99% o 24/7"
+                    />
+                  </div>
+
+                  <div className="settings-field">
+                    <label className="settings-label">Etiqueta Inferior</label>
+                    <input
+                      type="text"
+                      className="settings-input"
+                      value={heroData.stat3Label}
+                      onChange={(e) => updateHeroField('stat3Label', e.target.value)}
+                      placeholder="Frecuencia de monitoreo"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* BLOQUE 4: TARJETA DE DUELO / COMPARATIVA */}
+            <div className="settings-card" style={{ marginBottom: '1.5rem' }}>
+              <div className="settings-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Icon name="scale" size={18} color={isDark ? '#46C285' : '#0E6B41'} />
+                    <h2 className="settings-card-title" style={{ margin: 0 }}>4. Tarjeta de Duelo / Comparativa Destacada</h2>
+                  </div>
+                  <p className="settings-card-desc">
+                    Controla los proveedores enfrentados, sus métricas de milisegundos y barras de rendimiento.
+                  </p>
+                </div>
+
+                <label style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.45rem 0.85rem',
+                  borderRadius: '6px',
+                  backgroundColor: heroData.showPreviewCard ? (isDark ? 'rgba(70, 194, 133, 0.15)' : 'rgba(14, 107, 65, 0.1)') : (isDark ? '#1C1914' : '#F0ECE1'),
+                  border: '1px solid ' + (heroData.showPreviewCard ? (isDark ? '#46C285' : '#0E6B41') : (isDark ? '#383025' : 'var(--border-ink)')),
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  fontSize: '0.84rem'
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={heroData.showPreviewCard}
+                    onChange={(e) => updateHeroField('showPreviewCard', e.target.checked)}
+                  />
+                  <span>{heroData.showPreviewCard ? '✓ Tarjeta de Duelo Activada' : '✕ Tarjeta Ocultada'}</span>
+                </label>
+              </div>
+
+              {heroData.showPreviewCard ? (
+                <div>
+                  <div className="settings-grid-2" style={{ marginBottom: '1.25rem' }}>
+                    <div className="settings-field">
+                      <label className="settings-label">Badge de la Tarjeta</label>
+                      <input
+                        type="text"
+                        className="settings-input"
+                        value={heroData.previewBadge}
+                        onChange={(e) => updateHeroField('previewBadge', e.target.value)}
+                        placeholder="MEDICIÓN EN VIVO · TTFB"
+                      />
+                    </div>
+
+                    <div className="settings-field">
+                      <label className="settings-label">Título del Duelo</label>
+                      <input
+                        type="text"
+                        className="settings-input"
+                        value={heroData.previewTitle}
+                        onChange={(e) => updateHeroField('previewTitle', e.target.value)}
+                        placeholder="Duelo de Rendimiento"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Grid de 2 Contendientes */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.25rem', marginBottom: '1.25rem' }}>
+                    {/* Contendiente 1 */}
+                    <div style={{
+                      padding: '1.25rem',
+                      borderRadius: '8px',
+                      backgroundColor: isDark ? '#14110C' : '#F9F7F1',
+                      border: '1.5px solid ' + (isDark ? '#46C285' : '#0E6B41')
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: isDark ? '#46C285' : '#0E6B41', marginBottom: '0.85rem' }}>
+                        <Icon name="trophy" size={15} />
+                        <strong style={{ fontSize: '0.88rem' }}>Contendiente 1 (Ganador Destacado)</strong>
+                      </div>
+
+                      <div className="settings-field">
+                        <label className="settings-label">Nombre del Proveedor</label>
+                        <input
+                          type="text"
+                          className="settings-input"
+                          value={heroData.previewProvider1Name}
+                          onChange={(e) => updateHeroField('previewProvider1Name', e.target.value)}
+                          placeholder="Hostinger"
+                        />
+                      </div>
+
+                      <div className="settings-field">
+                        <label className="settings-label">Plan y Precio</label>
+                        <input
+                          type="text"
+                          className="settings-input"
+                          value={heroData.previewProvider1Sub}
+                          onChange={(e) => updateHeroField('previewProvider1Sub', e.target.value)}
+                          placeholder="Cloud Startup · 3.99€/m"
+                        />
+                      </div>
+
+                      <div className="settings-grid-2">
+                        <div className="settings-field">
+                          <label className="settings-label">Métrica TTFB</label>
+                          <input
+                            type="text"
+                            className="settings-input"
+                            value={heroData.previewProvider1Metric}
+                            onChange={(e) => updateHeroField('previewProvider1Metric', e.target.value)}
+                            placeholder="142ms"
+                          />
+                        </div>
+
+                        <div className="settings-field">
+                          <label className="settings-label">Barra (%)</label>
+                          <input
+                            type="number"
+                            min="1"
+                            max="100"
+                            className="settings-input"
+                            value={heroData.previewProvider1Percent}
+                            onChange={(e) => updateHeroField('previewProvider1Percent', Number(e.target.value))}
+                            placeholder="88"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Contendiente 2 */}
+                    <div style={{
+                      padding: '1.25rem',
+                      borderRadius: '8px',
+                      backgroundColor: isDark ? '#14110C' : '#F9F7F1',
+                      border: '1px solid ' + (isDark ? '#2B251D' : 'rgba(23, 20, 15, 0.15)')
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: isDark ? '#FAF7EE' : 'var(--text-ink)', marginBottom: '0.85rem' }}>
+                        <Icon name="scale" size={15} />
+                        <strong style={{ fontSize: '0.88rem' }}>Contendiente 2 (Comparador)</strong>
+                      </div>
+
+                      <div className="settings-field">
+                        <label className="settings-label">Nombre del Proveedor</label>
+                        <input
+                          type="text"
+                          className="settings-input"
+                          value={heroData.previewProvider2Name}
+                          onChange={(e) => updateHeroField('previewProvider2Name', e.target.value)}
+                          placeholder="Webempresa"
+                        />
+                      </div>
+
+                      <div className="settings-field">
+                        <label className="settings-label">Plan y Precio</label>
+                        <input
+                          type="text"
+                          className="settings-input"
+                          value={heroData.previewProvider2Sub}
+                          onChange={(e) => updateHeroField('previewProvider2Sub', e.target.value)}
+                          placeholder="Plan M · 4.95€/m"
+                        />
+                      </div>
+
+                      <div className="settings-grid-2">
+                        <div className="settings-field">
+                          <label className="settings-label">Métrica TTFB</label>
+                          <input
+                            type="text"
+                            className="settings-input"
+                            value={heroData.previewProvider2Metric}
+                            onChange={(e) => updateHeroField('previewProvider2Metric', e.target.value)}
+                            placeholder="168ms"
+                          />
+                        </div>
+
+                        <div className="settings-field">
+                          <label className="settings-label">Barra (%)</label>
+                          <input
+                            type="number"
+                            min="1"
+                            max="100"
+                            className="settings-input"
+                            value={heroData.previewProvider2Percent}
+                            onChange={(e) => updateHeroField('previewProvider2Percent', Number(e.target.value))}
+                            placeholder="82"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Pie de Tarjeta */}
+                  <div className="settings-grid-2">
+                    <div className="settings-field">
+                      <label className="settings-label">Texto del Enlace Inferior</label>
+                      <input
+                        type="text"
+                        className="settings-input"
+                        value={heroData.previewFooterText}
+                        onChange={(e) => updateHeroField('previewFooterText', e.target.value)}
+                        placeholder="Ver comparativa completa en tiempo real"
+                      />
+                    </div>
+
+                    <div className="settings-field">
+                      <label className="settings-label">Enlace de Destino</label>
+                      <input
+                        type="text"
+                        className="settings-input"
+                        value={heroData.previewFooterLink}
+                        onChange={(e) => updateHeroField('previewFooterLink', e.target.value)}
+                        placeholder="/auditor o #ranking"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div style={{
+                  padding: '1.5rem',
+                  borderRadius: '8px',
+                  backgroundColor: isDark ? '#14110C' : '#F9F7F1',
+                  textAlign: 'center',
+                  color: isDark ? '#9E9687' : 'var(--text-muted)',
+                  fontSize: '0.85rem'
+                }}>
+                  La tarjeta de duelo está oculta. El texto del Hero se distribuirá a lo ancho en la página de inicio.
+                </div>
+              )}
+            </div>
+
+            {/* BARRA INFERIOR DE GUARDADO */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '1.25rem',
+              backgroundColor: isDark ? '#1C1914' : '#FFFFFF',
+              border: '1.5px solid ' + (isDark ? '#383025' : 'var(--border-ink)'),
+              borderRadius: '8px',
+              marginTop: '1.5rem',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.06)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Icon name="sparkles" size={16} color={isDark ? '#46C285' : '#0E6B41'} />
+                <span style={{ fontSize: '0.85rem', color: isDark ? '#FAF7EE' : 'var(--text-ink)', fontWeight: 600 }}>
+                  ¿Listo para publicar tus cambios en la portada?
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.6rem' }}>
+                <button
+                  type="button"
+                  onClick={handleResetHero}
+                  className="btn btn-secondary btn-sm"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+                >
+                  <Icon name="history" size={14} />
+                  <span>Restablecer Fábrica</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleSaveHero}
+                  disabled={heroSaving}
+                  className="btn btn-primary"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    fontWeight: 700,
+                    padding: '0.55rem 1.35rem',
+                    boxShadow: '0 4px 12px rgba(14, 107, 65, 0.3)',
+                  }}
+                >
+                  <Icon name="save" size={15} />
+                  <span>{heroSaving ? 'Guardando Portada...' : 'Guardar Portada & Secciones'}</span>
+                </button>
+              </div>
+            </div>
+            </>
+            )}
+
+            {/* VISTA Y CONFIGURACIÓN DE SECCIONES EDITORIALES (PODIO, OFERTAS, BALANZA, CUPONES, NEWS) */}
+            {portadaSubtab !== 'hero' && (() => {
+              const currentMeta = SECTION_METAS[portadaSubtab] || SECTION_METAS.podio;
+              const currentData = sectionHeadersData[portadaSubtab] || DEFAULT_SECTION_HEADERS[portadaSubtab] || {};
+
+              return (
+                <div>
+                  {/* VISTA PREVIA EDITORIAL EN VIVO */}
+                  <div className="settings-card" style={{ marginBottom: '1.75rem', border: '1.5px solid ' + (isDark ? '#383025' : 'var(--border-ink)') }}>
+                    <div className="settings-card-header" style={{ borderBottom: '1px solid ' + (isDark ? '#2B251D' : 'rgba(23, 20, 15, 0.08)'), paddingBottom: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Icon name="eye" size={16} color={isDark ? '#46C285' : '#0E6B41'} />
+                        <h2 className="settings-card-title" style={{ fontSize: '1rem', margin: 0 }}>
+                          Vista Previa en Vivo: {currentMeta.name}
+                        </h2>
+                      </div>
+                      <span style={{ fontSize: '0.74rem', fontFamily: 'var(--font-mono)', color: isDark ? '#9E9687' : 'var(--text-muted)' }}>
+                        Se actualiza en tiempo real mientras escribes
+                      </span>
+                    </div>
+
+                    <div style={{
+                      padding: '2.5rem 1.5rem',
+                      backgroundColor: isDark ? '#14110C' : '#FAF8F5',
+                      borderRadius: '8px',
+                      border: '1px dashed ' + (isDark ? '#383025' : 'rgba(23, 20, 15, 0.15)'),
+                      textAlign: 'center',
+                    }}>
+                      {currentData.kicker && (
+                        <div
+                          className="kicker"
+                          style={{
+                            color: portadaSubtab === 'balanza' ? 'var(--green-bright)' : (isDark ? '#46C285' : '#0E6B41'),
+                            letterSpacing: '0.12em',
+                            fontWeight: 700,
+                            fontSize: '0.75rem',
+                            marginBottom: '0.65rem',
+                            textTransform: 'uppercase',
+                          }}
+                        >
+                          {currentData.kicker}
+                        </div>
+                      )}
+
+                      <h2 style={{
+                        fontFamily: 'var(--font-serif)',
+                        fontSize: '2.2rem',
+                        lineHeight: 1.15,
+                        color: isDark ? '#FAF7EE' : 'var(--text-ink)',
+                        margin: '0 auto 0.75rem auto',
+                        maxWidth: '850px',
+                      }}>
+                        {currentData.titleBefore ? `${currentData.titleBefore} ` : ''}
+                        {currentData.titleHighlight && (
+                          <span
+                            className="italic-serif"
+                            style={{
+                              fontStyle: 'italic',
+                              color: portadaSubtab === 'balanza' ? 'var(--green-bright)' : (isDark ? '#46C285' : '#0E6B41'),
+                            }}
+                          >
+                            {currentData.titleHighlight}
+                          </span>
+                        )}
+                        {currentData.titleAfter ? ` ${currentData.titleAfter}` : ''}
+                      </h2>
+
+                      {currentData.subtitle && (
+                        <p style={{
+                          color: isDark ? '#9E9687' : 'var(--text-muted)',
+                          fontSize: '1rem',
+                          lineHeight: 1.5,
+                          maxWidth: '680px',
+                          margin: '0 auto',
+                        }}>
+                          {currentData.subtitle}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* FORMULARIO DE EDICIÓN */}
+                  <div className="settings-card" style={{ marginBottom: '1.75rem' }}>
+                    <div className="settings-card-header" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
+                      <Icon name="edit" size={16} color={isDark ? '#46C285' : '#0E6B41'} />
+                      <h2 className="settings-card-title" style={{ fontSize: '1rem', margin: 0 }}>
+                        Personalización Editorial: {currentMeta.name}
+                      </h2>
+                    </div>
+
+                    {/* Antetítulo / Kicker */}
+                    <div className="settings-field" style={{ marginBottom: '1.5rem' }}>
+                      <label className="settings-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>Antetítulo (Kicker superior)</span>
+                        <span style={{ fontSize: '0.72rem', color: isDark ? '#9E9687' : 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                          Mayúsculas
+                        </span>
+                      </label>
+                      <input
+                        type="text"
+                        className="settings-input"
+                        value={currentData.kicker || ''}
+                        onChange={(e) => updateSectionHeaderField(portadaSubtab, 'kicker', e.target.value)}
+                        placeholder={currentMeta.kickerHint}
+                      />
+                      <p className="settings-field-hint" style={{ marginTop: '0.35rem', fontSize: '0.78rem', color: isDark ? '#9E9687' : 'var(--text-muted)' }}>
+                        Texto de contexto que aparece sobre el título. Si lo vacías, se ocultará en la web.
+                      </p>
+                    </div>
+
+                    {/* Titular en 3 partes */}
+                    <div style={{
+                      padding: '1.25rem',
+                      borderRadius: '8px',
+                      backgroundColor: isDark ? '#14110C' : '#F9F7F1',
+                      border: '1px solid ' + (isDark ? '#2B251D' : 'rgba(23, 20, 15, 0.12)'),
+                      marginBottom: '1.5rem',
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.85rem' }}>
+                        <Icon name="type" size={15} color={isDark ? '#46C285' : '#0E6B41'} />
+                        <strong style={{ fontSize: '0.88rem', color: isDark ? '#FAF7EE' : 'var(--text-ink)' }}>
+                          Titular Principal (con énfasis editorial en cursiva)
+                        </strong>
+                      </div>
+
+                      <div className="settings-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+                        <div className="settings-field">
+                          <label className="settings-label">1. Texto Inicial</label>
+                          <input
+                            type="text"
+                            className="settings-input"
+                            value={currentData.titleBefore || ''}
+                            onChange={(e) => updateSectionHeaderField(portadaSubtab, 'titleBefore', e.target.value)}
+                            placeholder={currentMeta.titleBeforeHint}
+                          />
+                        </div>
+
+                        <div className="settings-field">
+                          <label className="settings-label" style={{ color: isDark ? '#46C285' : '#0E6B41', fontWeight: 700 }}>
+                            2. Palabra / Frase con Énfasis (Cursiva)
+                          </label>
+                          <input
+                            type="text"
+                            className="settings-input"
+                            style={{
+                              fontStyle: 'italic',
+                              borderColor: isDark ? '#46C285' : '#0E6B41',
+                              backgroundColor: isDark ? 'rgba(70, 194, 133, 0.05)' : 'rgba(14, 107, 65, 0.03)',
+                            }}
+                            value={currentData.titleHighlight || ''}
+                            onChange={(e) => updateSectionHeaderField(portadaSubtab, 'titleHighlight', e.target.value)}
+                            placeholder={currentMeta.titleHighlightHint}
+                          />
+                        </div>
+
+                        <div className="settings-field">
+                          <label className="settings-label">3. Texto Final (Opcional)</label>
+                          <input
+                            type="text"
+                            className="settings-input"
+                            value={currentData.titleAfter || ''}
+                            onChange={(e) => updateSectionHeaderField(portadaSubtab, 'titleAfter', e.target.value)}
+                            placeholder={currentMeta.titleAfterHint}
+                          />
+                        </div>
+                      </div>
+
+                      <div style={{
+                        marginTop: '1rem',
+                        padding: '0.75rem 1rem',
+                        borderRadius: '6px',
+                        backgroundColor: isDark ? '#1C1914' : '#FFFFFF',
+                        border: '1px solid ' + (isDark ? '#383025' : 'rgba(23, 20, 15, 0.1)'),
+                        fontSize: '0.85rem',
+                        color: isDark ? '#9E9687' : 'var(--text-muted)',
+                      }}>
+                        Resultado en vivo: <strong style={{ color: isDark ? '#FAF7EE' : 'var(--text-ink)', fontFamily: 'var(--font-serif)', fontSize: '1.05rem' }}>
+                          {currentData.titleBefore}{' '}
+                          <span style={{ fontStyle: 'italic', color: isDark ? '#46C285' : '#0E6B41' }}>
+                            {currentData.titleHighlight}
+                          </span>{' '}
+                          {currentData.titleAfter}
+                        </strong>
+                      </div>
+                    </div>
+
+                    {/* Subtítulo / Bajada Descriptiva */}
+                    <div className="settings-field">
+                      <label className="settings-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>Subtítulo / Bajada Descriptiva</span>
+                        <span style={{ fontSize: '0.72rem', color: isDark ? '#9E9687' : 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                          {(currentData.subtitle || '').length} caracteres
+                        </span>
+                      </label>
+                      <textarea
+                        rows={3}
+                        className="settings-input"
+                        style={{ resize: 'vertical', minHeight: '80px', lineHeight: 1.5 }}
+                        value={currentData.subtitle || ''}
+                        onChange={(e) => updateSectionHeaderField(portadaSubtab, 'subtitle', e.target.value)}
+                        placeholder={currentMeta.subtitleHint}
+                      />
+                      <p className="settings-field-hint" style={{ marginTop: '0.35rem', fontSize: '0.78rem', color: isDark ? '#9E9687' : 'var(--text-muted)' }}>
+                        Describe brevemente a los usuarios el propósito de este bloque.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* BARRA INFERIOR DE ACCIONES */}
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '1.25rem',
+                    backgroundColor: isDark ? '#1C1914' : '#FFFFFF',
+                    border: '1.5px solid ' + (isDark ? '#383025' : 'var(--border-ink)'),
+                    borderRadius: '8px',
+                    marginTop: '1.5rem',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+                    flexWrap: 'wrap',
+                    gap: '1rem',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Icon name="sparkles" size={16} color={isDark ? '#46C285' : '#0E6B41'} />
+                      <span style={{ fontSize: '0.85rem', color: isDark ? '#FAF7EE' : 'var(--text-ink)', fontWeight: 600 }}>
+                        ¿Deseas aplicar estos textos a la web?
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.6rem' }}>
+                      <button
+                        type="button"
+                        onClick={() => handleResetSectionHeader(portadaSubtab)}
+                        className="btn btn-secondary btn-sm"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+                      >
+                        <Icon name="history" size={14} />
+                        <span>Restablecer Esta Sección</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleSaveHero}
+                        disabled={heroSaving}
+                        className="btn btn-primary"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.4rem',
+                          fontWeight: 700,
+                          padding: '0.55rem 1.35rem',
+                          boxShadow: '0 4px 12px rgba(14, 107, 65, 0.3)',
+                        }}
+                      >
+                        <Icon name="save" size={15} />
+                        <span>{heroSaving ? 'Guardando...' : 'Guardar Portada & Secciones'}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         )}
       </main>

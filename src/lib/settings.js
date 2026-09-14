@@ -1,48 +1,48 @@
 import fs from 'fs';
 import path from 'path';
+import { DEFAULT_HERO_SETTINGS, DEFAULT_SECTION_HEADERS, DEFAULT_SETTINGS } from './settingsDefaults.js';
+
+export { DEFAULT_HERO_SETTINGS, DEFAULT_SECTION_HEADERS, DEFAULT_SETTINGS };
 
 const SETTINGS_FILE = path.join(process.cwd(), 'prisma', 'settings.json');
-
-const DEFAULT_SETTINGS = {
-  siteName: 'Debatehosting',
-  siteTagline: 'El Gran Observatorio de Hosting, VPS y Cupones',
-  siteUrl: 'https://debatehosting.com',
-  contactEmail: 'redaccion@debatehosting.com',
-  currency: '$',
-  faviconUrl: '/favicon.ico',
-  logoUrl: '',
-  iconUrl: '/icon.png',
-  ogImageUrl: '/og-image.png',
-  logoType: 'icon_text', // 'icon_text' | 'image' | 'text'
-  logoIcon: 'rocket',
-  logoTextPrefix: 'Debate',
-  logoTextHighlight: 'hosting',
-  logoColor: '#0E6B41',
-  defaultMetaDescription:
-    'Medio editorial y comparador técnico independiente de hosting web, servidores VPS, cloud y cupones verificados. Medición real de latencia TTFB, uptime y relación calidad-precio sin tapujos.',
-  defaultKeywords:
-    'hosting web, mejor hosting espana, comparativa hosting, vps baratos, cupones hosting, hosting wordpress, test ttfb',
-  affiliateRel: 'sponsored noopener noreferrer',
-  disclosureNotice:
-    'Debatehosting se financia mediante enlaces de afiliación regulados. Al contratar a través de nuestros enlaces, podemos recibir una comisión sin coste adicional para ti. Esto nunca afecta a la objetividad de nuestros análisis ni a las posiciones del ranking.',
-  ttfbEngineVersion: 'v2.4 (OpenTelemetry Engine)',
-  maintenanceMode: false,
-  enableComments: false,
-  autoVerifyCoupons: true,
-  // Analítica, Search Console & Inyecciones de Código
-  googleAnalyticsId: '',
-  googleSearchConsoleCode: '',
-  geminiApiKey: '',
-  customHeadCode: '',
-  customBodyCode: '',
-};
 
 export function getSettings() {
   try {
     if (fs.existsSync(SETTINGS_FILE)) {
       const fileData = fs.readFileSync(SETTINGS_FILE, 'utf8');
       const parsed = JSON.parse(fileData);
-      return { ...DEFAULT_SETTINGS, ...parsed };
+      return {
+        ...DEFAULT_SETTINGS,
+        ...parsed,
+        hero: {
+          ...DEFAULT_HERO_SETTINGS,
+          ...(parsed.hero || {}),
+        },
+        sectionHeaders: {
+          ...DEFAULT_SECTION_HEADERS,
+          ...(parsed.sectionHeaders || {}),
+          podio: {
+            ...DEFAULT_SECTION_HEADERS.podio,
+            ...(parsed.sectionHeaders?.podio || {}),
+          },
+          ofertas: {
+            ...DEFAULT_SECTION_HEADERS.ofertas,
+            ...(parsed.sectionHeaders?.ofertas || {}),
+          },
+          balanza: {
+            ...DEFAULT_SECTION_HEADERS.balanza,
+            ...(parsed.sectionHeaders?.balanza || {}),
+          },
+          cupones: {
+            ...DEFAULT_SECTION_HEADERS.cupones,
+            ...(parsed.sectionHeaders?.cupones || {}),
+          },
+          news: {
+            ...DEFAULT_SECTION_HEADERS.news,
+            ...(parsed.sectionHeaders?.news || {}),
+          },
+        },
+      };
     }
   } catch (err) {
     console.error('Error leyendo settings.json:', err);
@@ -54,6 +54,47 @@ export function updateSettings(newSettings) {
   try {
     const current = getSettings();
     const normalized = { ...newSettings };
+
+    if (normalized.hero && typeof normalized.hero === 'object') {
+      normalized.hero = {
+        ...DEFAULT_HERO_SETTINGS,
+        ...(current.hero || {}),
+        ...normalized.hero,
+      };
+    }
+
+    if (normalized.sectionHeaders && typeof normalized.sectionHeaders === 'object') {
+      normalized.sectionHeaders = {
+        ...DEFAULT_SECTION_HEADERS,
+        ...(current.sectionHeaders || {}),
+        ...normalized.sectionHeaders,
+        podio: {
+          ...DEFAULT_SECTION_HEADERS.podio,
+          ...(current.sectionHeaders?.podio || {}),
+          ...(normalized.sectionHeaders.podio || {}),
+        },
+        ofertas: {
+          ...DEFAULT_SECTION_HEADERS.ofertas,
+          ...(current.sectionHeaders?.ofertas || {}),
+          ...(normalized.sectionHeaders.ofertas || {}),
+        },
+        balanza: {
+          ...DEFAULT_SECTION_HEADERS.balanza,
+          ...(current.sectionHeaders?.balanza || {}),
+          ...(normalized.sectionHeaders.balanza || {}),
+        },
+        cupones: {
+          ...DEFAULT_SECTION_HEADERS.cupones,
+          ...(current.sectionHeaders?.cupones || {}),
+          ...(normalized.sectionHeaders.cupones || {}),
+        },
+        news: {
+          ...DEFAULT_SECTION_HEADERS.news,
+          ...(current.sectionHeaders?.news || {}),
+          ...(normalized.sectionHeaders.news || {}),
+        },
+      };
+    }
 
     ['faviconUrl', 'logoUrl', 'iconUrl', 'ogImageUrl'].forEach((key) => {
       if (normalized[key] && typeof normalized[key] === 'string') {

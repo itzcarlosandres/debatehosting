@@ -5,11 +5,17 @@ import Link from 'next/link';
 import { Icon } from './Icon';
 import { useToast } from '../context/ToastContext';
 import { normalizeImageUrl } from '@/lib/imageHelper';
+import { DEFAULT_SECTION_HEADERS } from '@/lib/settingsDefaults';
 
-export const Cupones = ({ providers = [] }) => {
+export const Cupones = ({ providers = [], settings = {} }) => {
   const [unlockedDeals, setUnlockedDeals] = useState({});
   const [copiedId, setCopiedId] = useState(null);
   const toast = useToast();
+
+  const header = {
+    ...DEFAULT_SECTION_HEADERS.cupones,
+    ...(settings?.sectionHeaders?.cupones || {}),
+  };
 
   const activeCoupons = useMemo(() => {
     const list = [];
@@ -88,14 +94,17 @@ export const Cupones = ({ providers = [] }) => {
       <div className="container">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1.5rem', marginBottom: '2.5rem' }}>
           <div>
-            <div className="kicker">CUPONES Y CÓDIGOS DE DESCUENTO</div>
+            {header.kicker && <div className="kicker">{header.kicker}</div>}
             <h2>
-              Cupones que <span className="italic-serif">funcionan</span> de verdad.
+              {header.titleBefore ? `${header.titleBefore} ` : ''}
+              {header.titleHighlight && <span className="italic-serif">{header.titleHighlight}</span>}
+              {header.titleAfter ? ` ${header.titleAfter}` : ''}
             </h2>
-            <p style={{ maxWidth: '640px', marginTop: '0.4rem', fontSize: '1.05rem', color: 'var(--text-muted)' }}>
-              Acuerdos directos y rebajas comprobadas a mano. Copia el código para desbloquear
-              el acceso preferente a la plataforma de cada proveedor.
-            </p>
+            {header.subtitle && (
+              <p style={{ maxWidth: '640px', marginTop: '0.4rem', fontSize: '1.05rem', color: 'var(--text-muted)' }}>
+                {header.subtitle}
+              </p>
+            )}
           </div>
 
           <Link href="/cupones" className="btn btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -136,7 +145,7 @@ export const Cupones = ({ providers = [] }) => {
                 }}
               >
                 {/* Logo + Nombre + Descuento */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1.1rem', flex: '1 1 280px' }}>
+                <div className="coupon-brand-info" style={{ display: 'flex', alignItems: 'center', gap: '1.1rem', flex: '1 1 280px' }}>
                   {prov?.logoUrl ? (
                     <img
                       src={normalizeImageUrl(prov.logoUrl)}
@@ -190,7 +199,7 @@ export const Cupones = ({ providers = [] }) => {
                 </div>
 
                 {/* Válido hasta + Verificado */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontFamily: 'var(--font-mono)', fontSize: '0.78rem', flex: '0 1 180px' }}>
+                <div className="coupon-meta-info" style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontFamily: 'var(--font-mono)', fontSize: '0.78rem', flex: '0 1 180px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                     {coupon.verified ? (
                       <span className="badge-tag badge-green" style={{ fontSize: '0.72rem' }}>
@@ -208,7 +217,7 @@ export const Cupones = ({ providers = [] }) => {
                 </div>
 
                 {/* Código de Cupón + Botón Copiar + Botón Ir a la Oferta */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap', flex: '0 0 auto' }}>
+                <div className="coupon-card-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
                   <button
                     onClick={() => handleCopyCode(coupon)}
                     className={`coupon-copy-btn ${isCopied ? 'copied' : ''}`}
@@ -252,7 +261,7 @@ export const Cupones = ({ providers = [] }) => {
         <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
           <Link
             href="/cupones"
-            className="btn btn-secondary"
+            className="btn btn-secondary coupon-bottom-btn"
             style={{
               padding: '0.85rem 2rem',
               fontSize: '0.95rem',

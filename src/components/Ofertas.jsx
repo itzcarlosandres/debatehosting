@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Icon } from './Icon';
 import { useToast } from '../context/ToastContext';
 import { normalizeImageUrl } from '@/lib/imageHelper';
+import { DEFAULT_SECTION_HEADERS } from '@/lib/settingsDefaults';
 
 const CATEGORIES_LIST = [
   { id: 'all', label: 'Todos' },
@@ -15,10 +16,15 @@ const CATEGORIES_LIST = [
   { id: 'dominios', label: 'Dominios' },
 ];
 
-export const Ofertas = ({ providers = [] }) => {
+export const Ofertas = ({ providers = [], settings = {} }) => {
   const [activeTab, setActiveTab] = useState('all');
   const [copiedCouponId, setCopiedCouponId] = useState(null);
   const toast = useToast();
+
+  const header = {
+    ...DEFAULT_SECTION_HEADERS.ofertas,
+    ...(settings?.sectionHeaders?.ofertas || {}),
+  };
 
   const filteredProviders = useMemo(() => {
     const list =
@@ -90,14 +96,13 @@ export const Ofertas = ({ providers = [] }) => {
   return (
     <section id="ofertas" className="ofertas-section">
       <div className="container">
-        <div className="kicker">RADAR Y DIRECTORIO DE HOSTING</div>
+        {header.kicker && <div className="kicker">{header.kicker}</div>}
         <h2>
-          Todas las ofertas, <span className="italic-serif">en una mesa.</span>
+          {header.titleBefore ? `${header.titleBefore} ` : ''}
+          {header.titleHighlight && <span className="italic-serif">{header.titleHighlight}</span>}
+          {header.titleAfter ? ` ${header.titleAfter}` : ''}
         </h2>
-        <p className="sub">
-          Filtra por tipo de infraestructura, compara precios reales de renovación y aprovecha
-          los códigos de descuento negociados directamente con cada empresa.
-        </p>
+        {header.subtitle && <p className="sub">{header.subtitle}</p>}
 
         {/* Pestañas de Categoría */}
         <div className="tabs-bar">

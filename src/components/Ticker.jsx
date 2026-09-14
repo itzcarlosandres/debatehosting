@@ -1,8 +1,28 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
-export const Ticker = ({ items = [] }) => {
+export const Ticker = ({ items = [], settings: initialSettings }) => {
+  const [showTicker, setShowTicker] = useState(
+    initialSettings?.showTicker !== undefined ? initialSettings.showTicker : true
+  );
+
+  useEffect(() => {
+    if (initialSettings && initialSettings.showTicker !== undefined) {
+      setShowTicker(initialSettings.showTicker);
+    } else {
+      fetch('/api/public/settings', { cache: 'no-store' })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.showTicker !== undefined) {
+            setShowTicker(data.showTicker);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [initialSettings]);
+
+  if (!showTicker) return null;
   if (!items || items.length === 0) return null;
 
   const displayItems = [...items, ...items];
