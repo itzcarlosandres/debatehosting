@@ -122,6 +122,13 @@
       "titleAfter": "de verdad.",
       "subtitle": "Acuerdos directos y rebajas comprobadas a mano. Copia el código para desbloquear el acceso preferente a la plataforma de cada proveedor."
     },
+    "mejores": {
+      "kicker": "GUÍA EDITORIAL Y RANKING",
+      "titleBefore": "Los mejores proveedores,",
+      "titleHighlight": "categoría por categoría.",
+      "titleAfter": "",
+      "subtitle": "Nuestra selección definitiva tras cientos de benchmarks y auditorías: los ganadores indiscutibles según tu tipo de proyecto, presupuesto y requerimientos técnicos."
+    },
     "news": {
       "kicker": "BOLETÍN PARA DESARROLLADORES Y CREADORES",
       "titleBefore": "El Debate",
@@ -129,6 +136,91 @@
       "titleAfter": "",
       "subtitle": "Una entrega dominical con bajadas históricas de precios de VPS, auditorías de rendimiento y alertas sobre proveedores que recortan recursos en silencio. Cero spam, baja en un clic."
     }
+  },
+  "mejores": {
+    "showSection": true,
+    "items": [
+      {
+        "id": "global",
+        "categoryTitle": "Mejor Global",
+        "badge": "🏆 Ganador Absoluto",
+        "badgeColor": "green",
+        "providerSlug": "hostinger",
+        "providerName": "Hostinger",
+        "score": 9.8,
+        "plan": "Premium Web",
+        "price": "$2.49/mes",
+        "priceBefore": "$11.99/mes",
+        "highlight": "El equilibrio perfecto entre rendimiento ultrarrápido con servidores LiteSpeed, panel de control intuitivo y soporte 24/7 en español.",
+        "keyPoints": [
+          "Velocidad TTFB < 180ms",
+          "Dominio y SSL gratis 1er año",
+          "Garantía 30 días"
+        ],
+        "ctaText": "Reclamar Descuento",
+        "ctaUrl": ""
+      },
+      {
+        "id": "speed",
+        "categoryTitle": "Más Rápido TTFB",
+        "badge": "⚡ Máxima Potencia",
+        "badgeColor": "green",
+        "providerSlug": "siteground",
+        "providerName": "SiteGround",
+        "score": 9.7,
+        "plan": "StartUp Cloud",
+        "price": "$3.99/mes",
+        "priceBefore": "$17.99/mes",
+        "highlight": "Infraestructura premium alojada sobre Google Cloud Platform, con tecnología SuperCacher para sitios WordPress exigentes.",
+        "keyPoints": [
+          "PHP ultrarrápido y NGINX",
+          "Caché multicapa SuperCacher",
+          "Soporte técnico VIP"
+        ],
+        "ctaText": "Ver Oferta Oficial",
+        "ctaUrl": ""
+      },
+      {
+        "id": "value",
+        "categoryTitle": "Calidad / Precio",
+        "badge": "💰 Más Económico",
+        "badgeColor": "gold",
+        "providerSlug": "banahosting",
+        "providerName": "BanaHosting",
+        "score": 9.5,
+        "plan": "Bana Professional",
+        "price": "$4.95/mes",
+        "priceBefore": "$6.95/mes",
+        "highlight": "Líder en confiabilidad con cPanel clásico, discos NVMe sin restricciones y soporte técnico especializado disponible 24/7.",
+        "keyPoints": [
+          "Almacenamiento NVMe SSD",
+          "cPanel ilimitado tradicional",
+          "Sin letra pequeña de renovación"
+        ],
+        "ctaText": "Explorar Planes",
+        "ctaUrl": ""
+      },
+      {
+        "id": "vps",
+        "categoryTitle": "Mejor VPS",
+        "badge": "🚀 Potencia VPS",
+        "badgeColor": "dark",
+        "providerSlug": "contabo",
+        "providerName": "Contabo",
+        "score": 9.6,
+        "plan": "Cloud VPS S",
+        "price": "$5.50/mes",
+        "priceBefore": "$8.50/mes",
+        "highlight": "La mayor relación potencia-precio del mercado europeo y global: 4 vCPU cores dedicados y 8 GB RAM a precio imbatible.",
+        "keyPoints": [
+          "4 vCPU Cores & 8GB RAM",
+          "Tráfico ilimitado 32 TB",
+          "Snapshots y Backups automáticos"
+        ],
+        "ctaText": "Configurar VPS",
+        "ctaUrl": ""
+      }
+    ]
   },
   "showTicker": false,
   "showTopBar": true,

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Icon } from '@/components/Icon';
 import { useToast } from '@/context/ToastContext';
 import { normalizeImageUrl } from '@/lib/imageHelper';
-import { DEFAULT_HERO_SETTINGS, DEFAULT_SECTION_HEADERS } from '@/lib/settingsDefaults';
+import { DEFAULT_HERO_SETTINGS, DEFAULT_SECTION_HEADERS, DEFAULT_MEJORES_SETTINGS } from '@/lib/settingsDefaults';
 
 const AVAILABLE_CATEGORIES = [
   { id: 'hosting', label: 'Hosting web' },
@@ -34,6 +34,7 @@ const PORTADA_SUBTABS = [
   { id: 'hero', label: 'Hero Principal', icon: 'sparkles' },
   { id: 'podio', label: 'El Podio (Veredicto)', icon: 'trophy' },
   { id: 'ofertas', label: 'Directorio de Ofertas', icon: 'layers' },
+  { id: 'mejores', label: 'Los Mejores (Por Categoría)', icon: 'award' },
   { id: 'balanza', label: 'La Balanza (Comparador)', icon: 'scale' },
   { id: 'cupones', label: 'Cupones Verificados', icon: 'gem' },
   { id: 'news', label: 'Boletín Semanal', icon: 'globe' },
@@ -59,6 +60,16 @@ const SECTION_METAS = {
     titleHighlightHint: 'Ej: en una mesa.',
     titleAfterHint: '',
     subtitleHint: 'Filtra por tipo de infraestructura, compara precios reales de renovación...',
+  },
+  mejores: {
+    name: 'Los Mejores (Ganadores por Categoría)',
+    desc: 'Encabezado y tarjetas comparativas con los mejores hosting según métricas de velocidad, precio, VPS y WordPress.',
+    icon: 'award',
+    kickerHint: 'Ej: GUÍA EDITORIAL Y RANKING',
+    titleBeforeHint: 'Ej: Los mejores proveedores,',
+    titleHighlightHint: 'Ej: categoría por categoría.',
+    titleAfterHint: '',
+    subtitleHint: 'Nuestra selección definitiva tras cientos de benchmarks y auditorías...',
   },
   balanza: {
     name: 'La Balanza (Calibrador Interactivo)',
@@ -717,6 +728,10 @@ export default function AdminPage() {
       ...DEFAULT_SECTION_HEADERS.ofertas,
       ...(settingsData?.sectionHeaders?.ofertas || {}),
     },
+    mejores: {
+      ...DEFAULT_SECTION_HEADERS.mejores,
+      ...(settingsData?.sectionHeaders?.mejores || {}),
+    },
     balanza: {
       ...DEFAULT_SECTION_HEADERS.balanza,
       ...(settingsData?.sectionHeaders?.balanza || {}),
@@ -750,6 +765,7 @@ export default function AdminPage() {
     const sectionLabels = {
       podio: 'El Podio',
       ofertas: 'Directorio de Ofertas',
+      mejores: 'Los Mejores',
       balanza: 'La Balanza',
       cupones: 'Cupones Verificados',
       news: 'Boletín Semanal',
@@ -762,9 +778,122 @@ export default function AdminPage() {
           ...(prev?.sectionHeaders || {}),
           [sectionKey]: { ...(DEFAULT_SECTION_HEADERS[sectionKey] || {}) },
         },
+        ...(sectionKey === 'mejores' ? { mejores: DEFAULT_MEJORES_SETTINGS } : {}),
       }));
       toast.info('Valores de fábrica cargados. Haz clic en "Guardar Portada" para aplicar los cambios.');
     }
+  };
+
+  const updateMejoresItemField = (index, field, value) => {
+    setSettingsData((prev) => {
+      const currentItems = Array.isArray(prev?.mejores?.items)
+        ? [...prev.mejores.items]
+        : [...(DEFAULT_MEJORES_SETTINGS.items || [])];
+
+      if (!currentItems[index]) return prev;
+      currentItems[index] = {
+        ...currentItems[index],
+        [field]: value,
+      };
+
+      return {
+        ...prev,
+        mejores: {
+          ...DEFAULT_MEJORES_SETTINGS,
+          ...(prev?.mejores || {}),
+          items: currentItems,
+        },
+      };
+    });
+  };
+
+  const handleSelectMejoresProvider = (index, providerId) => {
+    const selectedProv = providers.find((p) => p.id === providerId);
+    if (!selectedProv) return;
+
+    setSettingsData((prev) => {
+      const currentItems = Array.isArray(prev?.mejores?.items)
+        ? [...prev.mejores.items]
+        : [...(DEFAULT_MEJORES_SETTINGS.items || [])];
+
+      if (!currentItems[index]) return prev;
+
+      currentItems[index] = {
+        ...currentItems[index],
+        providerId: selectedProv.id,
+        providerSlug: selectedProv.slug,
+        providerName: selectedProv.name,
+        plan: selectedProv.plan || currentItems[index].plan,
+        price: selectedProv.priceFrom ? `$${selectedProv.priceFrom.toFixed(2)}/${selectedProv.period || 'mes'}` : currentItems[index].price,
+        priceBefore: selectedProv.priceBefore ? `$${selectedProv.priceBefore.toFixed(2)}/${selectedProv.period || 'mes'}` : currentItems[index].priceBefore,
+        score: selectedProv.scoreRendimiento || currentItems[index].score,
+      };
+
+      return {
+        ...prev,
+        mejores: {
+          ...DEFAULT_MEJORES_SETTINGS,
+          ...(prev?.mejores || {}),
+          items: currentItems,
+        },
+      };
+    });
+  };
+
+  const handleAddMejoresItem = () => {
+    const defaultProv = providers[0] || null;
+    const newItem = {
+      id: 'custom-' + Date.now(),
+      categoryTitle: 'Nueva Categoría Destacada',
+      badge: '⭐ Recomendado',
+      badgeColor: 'green',
+      providerId: defaultProv?.id || '',
+      providerSlug: defaultProv?.slug || '',
+      providerName: defaultProv?.name || 'Nuevo Proveedor',
+      score: 9.5,
+      plan: defaultProv?.plan || 'Plan Especial',
+      price: defaultProv ? `$${defaultProv.priceFrom.toFixed(2)}/mes` : '$3.99/mes',
+      priceBefore: defaultProv?.priceBefore ? `$${defaultProv.priceBefore.toFixed(2)}/mes` : '',
+      highlight: 'Excelente opción recomendada para proyectos web en crecimiento.',
+      keyPoints: ['Alto rendimiento comprobado', 'Soporte técnico 24/7', 'Migración incluida'],
+      ctaText: 'Ver Oferta',
+      ctaUrl: '',
+    };
+
+    setSettingsData((prev) => {
+      const currentItems = Array.isArray(prev?.mejores?.items)
+        ? [...prev.mejores.items]
+        : [...(DEFAULT_MEJORES_SETTINGS.items || [])];
+
+      return {
+        ...prev,
+        mejores: {
+          ...DEFAULT_MEJORES_SETTINGS,
+          ...(prev?.mejores || {}),
+          items: [...currentItems, newItem],
+        },
+      };
+    });
+  };
+
+  const handleDeleteMejoresItem = (index) => {
+    if (!window.confirm('¿Seguro que deseas eliminar esta tarjeta de categoría?')) return;
+    setSettingsData((prev) => {
+      const currentItems = Array.isArray(prev?.mejores?.items)
+        ? [...prev.mejores.items]
+        : [...(DEFAULT_MEJORES_SETTINGS.items || [])];
+
+      currentItems.splice(index, 1);
+
+      return {
+        ...prev,
+        mejores: {
+          ...DEFAULT_MEJORES_SETTINGS,
+          ...(prev?.mejores || {}),
+          items: currentItems,
+        },
+      };
+    });
   };
 
   const handleResetContent = async () => {
@@ -6679,6 +6808,222 @@ export default function AdminPage() {
                       </p>
                     </div>
                   </div>
+
+                  {/* GESTIÓN ESPECÍFICA DE TARJETAS PARA LOS MEJORES */}
+                  {portadaSubtab === 'mejores' && (() => {
+                    const mejoresState = settingsData?.mejores || DEFAULT_MEJORES_SETTINGS;
+                    const items = Array.isArray(mejoresState.items) ? mejoresState.items : DEFAULT_MEJORES_SETTINGS.items;
+                    const isSectionVisible = mejoresState.showSection !== false;
+
+                    return (
+                      <div className="settings-card" style={{ marginBottom: '1.75rem' }}>
+                        <div className="settings-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.25rem', borderBottom: '1px solid ' + (isDark ? '#2B251D' : 'rgba(23, 20, 15, 0.08)'), paddingBottom: '0.75rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <Icon name="award" size={18} color={isDark ? '#46C285' : '#0E6B41'} />
+                            <div>
+                              <h2 className="settings-card-title" style={{ fontSize: '1.05rem', margin: 0 }}>
+                                Ganadores por Categoría (Tarjetas Destacadas)
+                              </h2>
+                              <span style={{ fontSize: '0.76rem', color: isDark ? '#9E9687' : 'var(--text-muted)' }}>
+                                Configura qué proveedor gana cada distinción técnica y personaliza sus textos.
+                              </span>
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', cursor: 'pointer', fontSize: '0.82rem', fontFamily: 'var(--font-mono)' }}>
+                              <input
+                                type="checkbox"
+                                checked={isSectionVisible}
+                                onChange={(e) => {
+                                  setSettingsData((prev) => ({
+                                    ...prev,
+                                    mejores: {
+                                      ...DEFAULT_MEJORES_SETTINGS,
+                                      ...(prev?.mejores || {}),
+                                      showSection: e.target.checked,
+                                    },
+                                  }));
+                                }}
+                              />
+                              <span>Mostrar sección en la portada</span>
+                            </label>
+
+                            <button
+                              type="button"
+                              onClick={handleAddMejoresItem}
+                              className="btn btn-secondary btn-sm"
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                            >
+                              <Icon name="plus" size={13} />
+                              <span>Añadir Categoría</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                          {items.map((item, idx) => (
+                            <div
+                              key={item.id || idx}
+                              style={{
+                                padding: '1.25rem',
+                                borderRadius: '8px',
+                                border: '1.5px solid ' + (isDark ? '#383025' : 'rgba(23, 20, 15, 0.12)'),
+                                backgroundColor: isDark ? '#14110C' : '#FAF8F5',
+                              }}
+                            >
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid ' + (isDark ? '#2B251D' : 'rgba(23, 20, 15, 0.08)'), paddingBottom: '0.5rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.76rem', fontWeight: 700, padding: '0.2rem 0.5rem', backgroundColor: isDark ? '#2B251D' : 'var(--bg-paper)', borderRadius: '4px', border: '1px solid ' + (isDark ? '#383025' : 'var(--border-ink)') }}>
+                                    #{idx + 1}
+                                  </span>
+                                  <strong style={{ fontSize: '0.95rem', color: isDark ? '#FAF7EE' : 'var(--text-ink)' }}>
+                                    {item.categoryTitle || `Categoría #${idx + 1}`}
+                                  </strong>
+                                </div>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteMejoresItem(idx)}
+                                  className="btn btn-secondary btn-sm"
+                                  style={{ color: 'var(--red-accent)', borderColor: 'rgba(176, 58, 38, 0.3)', padding: '0.25rem 0.6rem', fontSize: '0.74rem' }}
+                                >
+                                  <Icon name="trash" size={13} />
+                                  <span>Eliminar</span>
+                                </button>
+                              </div>
+
+                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+                                <div>
+                                  <label className="settings-label">Título de la Categoría</label>
+                                  <input
+                                    type="text"
+                                    className="settings-input"
+                                    value={item.categoryTitle || ''}
+                                    onChange={(e) => updateMejoresItemField(idx, 'categoryTitle', e.target.value)}
+                                    placeholder="Ej: Mejor Hosting Global 2026"
+                                  />
+                                </div>
+
+                                <div>
+                                  <label className="settings-label">Proveedor Asignado</label>
+                                  <select
+                                    className="settings-input"
+                                    value={item.providerId || ''}
+                                    onChange={(e) => handleSelectMejoresProvider(idx, e.target.value)}
+                                  >
+                                    <option value="">-- Seleccionar Proveedor --</option>
+                                    {providers.map((p) => (
+                                      <option key={p.id} value={p.id}>
+                                        {p.name} ({p.slug})
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+
+                                <div>
+                                  <label className="settings-label">Texto de la Insignia</label>
+                                  <input
+                                    type="text"
+                                    className="settings-input"
+                                    value={item.badge || ''}
+                                    onChange={(e) => updateMejoresItemField(idx, 'badge', e.target.value)}
+                                    placeholder="Ej: 🏆 Ganador Absoluto"
+                                  />
+                                </div>
+
+                                <div>
+                                  <label className="settings-label">Color de la Insignia</label>
+                                  <select
+                                    className="settings-input"
+                                    value={item.badgeColor || 'green'}
+                                    onChange={(e) => updateMejoresItemField(idx, 'badgeColor', e.target.value)}
+                                  >
+                                    <option value="green">Verde Editorial</option>
+                                    <option value="gold">Dorado / Oro</option>
+                                    <option value="red">Rojo Alerta</option>
+                                    <option value="dark">Tinta Negra</option>
+                                  </select>
+                                </div>
+
+                                <div>
+                                  <label className="settings-label">Plan Recomendado</label>
+                                  <input
+                                    type="text"
+                                    className="settings-input"
+                                    value={item.plan || ''}
+                                    onChange={(e) => updateMejoresItemField(idx, 'plan', e.target.value)}
+                                    placeholder="Ej: Premium Web"
+                                  />
+                                </div>
+
+                                <div>
+                                  <label className="settings-label">Precio Destacado</label>
+                                  <input
+                                    type="text"
+                                    className="settings-input"
+                                    value={item.price || ''}
+                                    onChange={(e) => updateMejoresItemField(idx, 'price', e.target.value)}
+                                    placeholder="Ej: $2.49/mes"
+                                  />
+                                </div>
+
+                                <div>
+                                  <label className="settings-label">Precio Anterior (Tachado)</label>
+                                  <input
+                                    type="text"
+                                    className="settings-input"
+                                    value={item.priceBefore || ''}
+                                    onChange={(e) => updateMejoresItemField(idx, 'priceBefore', e.target.value)}
+                                    placeholder="Ej: $11.99/mes"
+                                  />
+                                </div>
+
+                                <div>
+                                  <label className="settings-label">Texto Botón CTA</label>
+                                  <input
+                                    type="text"
+                                    className="settings-input"
+                                    value={item.ctaText || ''}
+                                    onChange={(e) => updateMejoresItemField(idx, 'ctaText', e.target.value)}
+                                    placeholder="Ej: Reclamar Descuento"
+                                  />
+                                </div>
+                              </div>
+
+                              <div style={{ marginBottom: '1rem' }}>
+                                <label className="settings-label">Veredicto / Resumen Editorial</label>
+                                <textarea
+                                  rows={2}
+                                  className="settings-input"
+                                  value={item.highlight || ''}
+                                  onChange={(e) => updateMejoresItemField(idx, 'highlight', e.target.value)}
+                                  placeholder="Explica brevemente por qué este proveedor gana en esta categoría..."
+                                />
+                              </div>
+
+                              <div>
+                                <label className="settings-label">Puntos Clave (3 líneas separadas por comas o saltos)</label>
+                                <input
+                                  type="text"
+                                  className="settings-input"
+                                  value={Array.isArray(item.keyPoints) ? item.keyPoints.join(' | ') : (item.keyPoints || '')}
+                                  onChange={(e) => {
+                                    const points = e.target.value.split('|').map((s) => s.trim()).filter(Boolean);
+                                    updateMejoresItemField(idx, 'keyPoints', points);
+                                  }}
+                                  placeholder="Ej: Velocidad TTFB < 180ms | Dominio gratis 1er año | Garantía 30 días"
+                                />
+                                <span style={{ fontSize: '0.72rem', color: isDark ? '#9E9687' : 'var(--text-muted)' }}>
+                                  Usa el caracter de barra vertical | para separar cada punto clave.
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {/* BARRA INFERIOR DE ACCIONES */}
                   <div style={{
