@@ -157,31 +157,31 @@ export const Ofertas = ({ providers = [], settings = {} }) => {
                               }
                             }}
                             style={{
-                              width: '28px',
-                              height: '28px',
+                              width: '48px',
+                              height: '48px',
                               objectFit: 'contain',
                               backgroundColor: '#FFFFFF',
-                              border: '1px solid rgba(23,20,15,0.15)',
-                              borderRadius: '4px',
-                              padding: '2px',
+                              border: '1.5px solid var(--border-ink)',
+                              borderRadius: '6px',
+                              padding: '3px',
                               flexShrink: 0,
                             }}
                           />
                         ) : null}
                         <div
                           style={{
-                            width: '28px',
-                            height: '28px',
-                            borderRadius: '4px',
+                            width: '48px',
+                            height: '48px',
+                            borderRadius: '6px',
                             backgroundColor: '#FAF7EE',
-                            border: '1px solid rgba(23,20,15,0.15)',
+                            border: '1.5px solid var(--border-ink)',
                             display: prov.logoUrl ? 'none' : 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             flexShrink: 0,
                             fontWeight: 800,
-                            fontSize: '0.75rem',
-                            fontFamily: 'var(--font-serif)',
+                            fontSize: '1.05rem',
+                            fontFamily: 'var(--font-mono)',
                             color: 'var(--text-ink)',
                           }}
                         >

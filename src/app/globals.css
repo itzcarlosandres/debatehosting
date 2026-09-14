@@ -4454,28 +4454,30 @@ input:checked + .toggle-slider:before {
 }
 
 .provider-dossier-logo {
-  width: 48px;
-  height: 48px;
+  width: 58px;
+  height: 58px;
   object-fit: contain;
   background-color: #FFFFFF;
-  padding: 5px;
+  padding: 4px;
   border-radius: var(--radius-sm);
   border: 1.5px solid var(--border-ink);
+  box-shadow: 1.5px 1.5px 0 var(--border-ink);
   flex-shrink: 0;
 }
 
 .provider-dossier-fallback-logo {
-  width: 48px;
-  height: 48px;
+  width: 58px;
+  height: 58px;
   background-color: #FAF7EE;
   border: 1.5px solid var(--border-ink);
   border-radius: var(--radius-sm);
+  box-shadow: 1.5px 1.5px 0 var(--border-ink);
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--font-mono);
   font-weight: 800;
-  font-size: 1.15rem;
+  font-size: 1.25rem;
   color: var(--text-ink);
   flex-shrink: 0;
 }

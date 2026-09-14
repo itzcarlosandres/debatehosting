@@ -490,76 +490,6 @@ export const ProveedoresCatalog = ({ providers = [], categories = [] }) => {
                     </div>
                   </div>
 
-                  {/* Barras de Progreso para Benchmarks Técnicos */}
-                  <div className="benchmark-meter-group">
-                    {/* Rendimiento */}
-                    <div className="benchmark-meter-item">
-                      <div className="benchmark-meter-meta">
-                        <span className="benchmark-meter-label">
-                          <Icon name="zap" size={13} color="var(--green-primary)" />
-                          <span>Rendimiento & TTFB</span>
-                        </span>
-                        <span className="benchmark-meter-val">{p.scoreRendimiento || 9}/10</span>
-                      </div>
-                      <div className="benchmark-track">
-                        <div
-                          className="benchmark-fill perf"
-                          style={{ width: `${((p.scoreRendimiento || 9) / 10) * 100}%` }}
-                        ></div>
-                      </div>
-                    </div>
-
-                    {/* Soporte Técnico */}
-                    <div className="benchmark-meter-item">
-                      <div className="benchmark-meter-meta">
-                        <span className="benchmark-meter-label">
-                          <Icon name="messageSquare" size={13} color="#2563EB" />
-                          <span>Soporte en Español</span>
-                        </span>
-                        <span className="benchmark-meter-val">{p.scoreSoporte || 9}/10</span>
-                      </div>
-                      <div className="benchmark-track">
-                        <div
-                          className="benchmark-fill support"
-                          style={{ width: `${((p.scoreSoporte || 9) / 10) * 100}%` }}
-                        ></div>
-                      </div>
-                    </div>
-
-                    {/* Calidad / Precio */}
-                    <div className="benchmark-meter-item">
-                      <div className="benchmark-meter-meta">
-                        <span className="benchmark-meter-label">
-                          <Icon name="dollarSign" size={13} color="#D97706" />
-                          <span>Relación Calidad / Precio</span>
-                        </span>
-                        <span className="benchmark-meter-val">{p.scorePrecio || 9}/10</span>
-                      </div>
-                      <div className="benchmark-track">
-                        <div
-                          className="benchmark-fill price"
-                          style={{ width: `${((p.scorePrecio || 9) / 10) * 100}%` }}
-                        ></div>
-                      </div>
-                    </div>
-
-                    {/* Facilidad de Uso */}
-                    <div className="benchmark-meter-item">
-                      <div className="benchmark-meter-meta">
-                        <span className="benchmark-meter-label">
-                          <Icon name="tool" size={13} color="#7C3AED" />
-                          <span>Facilidad y Panel</span>
-                        </span>
-                        <span className="benchmark-meter-val">{p.scoreFacilidad || 9}/10</span>
-                      </div>
-                      <div className="benchmark-track">
-                        <div
-                          className="benchmark-fill ease"
-                          style={{ width: `${((p.scoreFacilidad || 9) / 10) * 100}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
 
                   {/* Puntos Fuertes Destacados (Pros del Laboratorio) */}
                   {p.parsedPros && p.parsedPros.length > 0 && (
@@ -715,19 +645,21 @@ export const ProveedoresCatalog = ({ providers = [], categories = [] }) => {
 
                     {/* Logo + Nombre + Plan */}
                     <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
                         {p.logoUrl ? (
                           <img
                             src={normalizeImageUrl(p.logoUrl)}
                             alt={p.name}
                             style={{
-                              width: '36px',
-                              height: '36px',
+                              width: '54px',
+                              height: '54px',
                               objectFit: 'contain',
                               backgroundColor: '#FFFFFF',
-                              padding: '3px',
-                              borderRadius: '4px',
-                              border: '1px solid var(--border-ink)',
+                              padding: '4px',
+                              borderRadius: '6px',
+                              border: '1.5px solid var(--border-ink)',
+                              boxShadow: '1px 1px 0 rgba(23, 20, 15, 0.1)',
+                              flexShrink: 0,
                             }}
                             onError={(e) => {
                               e.currentTarget.style.display = 'none';
@@ -736,17 +668,19 @@ export const ProveedoresCatalog = ({ providers = [], categories = [] }) => {
                         ) : (
                           <div
                             style={{
-                              width: '36px',
-                              height: '36px',
+                              width: '54px',
+                              height: '54px',
                               backgroundColor: '#FAF7EE',
-                              borderRadius: '4px',
-                              border: '1px solid var(--border-ink)',
+                              borderRadius: '6px',
+                              border: '1.5px solid var(--border-ink)',
+                              boxShadow: '1px 1px 0 rgba(23, 20, 15, 0.1)',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               fontFamily: 'var(--font-mono)',
-                              fontWeight: 700,
-                              fontSize: '0.85rem',
+                              fontWeight: 800,
+                              fontSize: '1.1rem',
+                              flexShrink: 0,
                             }}
                           >
                             {p.name.slice(0, 2).toUpperCase()}

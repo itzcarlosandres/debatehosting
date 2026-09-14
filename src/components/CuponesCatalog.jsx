@@ -361,29 +361,31 @@ export const CuponesCatalog = ({ providers = [] }) => {
                           }
                         }}
                         style={{
-                          width: '44px',
-                          height: '44px',
+                          width: '52px',
+                          height: '52px',
                           objectFit: 'contain',
                           backgroundColor: '#FFFFFF',
                           border: '1.5px solid var(--border-ink)',
-                          borderRadius: '4px',
+                          borderRadius: '6px',
                           padding: '3px',
+                          boxShadow: '1px 1px 0 rgba(23, 20, 15, 0.1)',
                           flexShrink: 0,
                         }}
                       />
                     ) : null}
                     <div style={{
-                      width: '44px',
-                      height: '44px',
-                      backgroundColor: '#FFFFFF',
+                      width: '52px',
+                      height: '52px',
+                      backgroundColor: '#FAF7EE',
                       border: '1.5px solid var(--border-ink)',
-                      borderRadius: '4px',
+                      borderRadius: '6px',
+                      boxShadow: '1px 1px 0 rgba(23, 20, 15, 0.1)',
                       display: prov?.logoUrl ? 'none' : 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       fontFamily: 'var(--font-mono)',
-                      fontWeight: 700,
-                      fontSize: '0.95rem',
+                      fontWeight: 800,
+                      fontSize: '1.1rem',
                       flexShrink: 0,
                     }}>
                       {prov?.name?.slice(0, 2).toUpperCase() || 'CP'}

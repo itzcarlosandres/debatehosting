@@ -445,31 +445,31 @@ export const OfertasCatalog = ({ providers = [] }) => {
                               }
                             }}
                             style={{
-                              width: '36px',
-                              height: '36px',
+                              width: '52px',
+                              height: '52px',
                               objectFit: 'contain',
                               backgroundColor: '#FFFFFF',
-                              border: '1px solid rgba(23,20,15,0.15)',
-                              borderRadius: '4px',
-                              padding: '2px',
+                              border: '1.5px solid var(--border-ink)',
+                              borderRadius: '6px',
+                              padding: '3px',
                               flexShrink: 0,
                             }}
                           />
                         ) : null}
                         <div
                           style={{
-                            width: '36px',
-                            height: '36px',
-                            borderRadius: '4px',
+                            width: '52px',
+                            height: '52px',
+                            borderRadius: '6px',
                             backgroundColor: '#FAF7EE',
-                            border: '1px solid rgba(23,20,15,0.15)',
+                            border: '1.5px solid var(--border-ink)',
                             display: prov.logoUrl ? 'none' : 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             flexShrink: 0,
                             fontWeight: 800,
-                            fontSize: '0.85rem',
-                            fontFamily: 'var(--font-serif)',
+                            fontSize: '1.1rem',
+                            fontFamily: 'var(--font-mono)',
                             color: 'var(--text-ink)',
                           }}
                         >
@@ -632,31 +632,31 @@ export const OfertasCatalog = ({ providers = [] }) => {
                                 }
                               }}
                               style={{
-                                width: '28px',
-                                height: '28px',
+                                width: '48px',
+                                height: '48px',
                                 objectFit: 'contain',
                                 backgroundColor: '#FFFFFF',
-                                border: '1px solid rgba(23,20,15,0.15)',
-                                borderRadius: '4px',
-                                padding: '2px',
+                                border: '1.5px solid var(--border-ink)',
+                                borderRadius: '6px',
+                                padding: '3px',
                                 flexShrink: 0,
                               }}
                             />
                           ) : null}
                           <div
                             style={{
-                              width: '28px',
-                              height: '28px',
-                              borderRadius: '4px',
+                              width: '48px',
+                              height: '48px',
+                              borderRadius: '6px',
                               backgroundColor: '#FAF7EE',
-                              border: '1px solid rgba(23,20,15,0.15)',
+                              border: '1.5px solid var(--border-ink)',
                               display: prov.logoUrl ? 'none' : 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               flexShrink: 0,
                               fontWeight: 800,
-                              fontSize: '0.75rem',
-                              fontFamily: 'var(--font-serif)',
+                              fontSize: '1.05rem',
+                              fontFamily: 'var(--font-mono)',
                               color: 'var(--text-ink)',
                             }}
                           >
