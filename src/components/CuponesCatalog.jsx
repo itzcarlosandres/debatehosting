@@ -18,7 +18,6 @@ const CATEGORIES_LIST = [
 export const CuponesCatalog = ({ providers = [] }) => {
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState('all');
-  const [viewMode, setViewMode] = useState('list'); // 'list' | 'tickets'
   const [copiedId, setCopiedId] = useState(null);
   const [unlockedDeals, setUnlockedDeals] = useState({});
 
@@ -250,26 +249,9 @@ export const CuponesCatalog = ({ providers = [] }) => {
               )}
             </div>
 
-            {/* Alternador de Vista (Lista vs Tickets) */}
-            <div style={{ display: 'flex', border: '1.5px solid var(--border-ink)', borderRadius: '3px', overflow: 'hidden' }}>
-              <button
-                onClick={() => setViewMode('list')}
-                className={`btn btn-sm ${viewMode === 'list' ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ border: 'none', borderRadius: 0, padding: '0.45rem 0.9rem' }}
-                title="Vista Lista"
-              >
-                <Icon name="menu" size={14} />
-                <span>Lista</span>
-              </button>
-              <button
-                onClick={() => setViewMode('tickets')}
-                className={`btn btn-sm ${viewMode === 'tickets' ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ border: 'none', borderRadius: 0, padding: '0.45rem 0.9rem' }}
-                title="Vista Tickets de Imprenta"
-              >
-                <Icon name="sliders" size={14} />
-                <span>Tickets</span>
-              </button>
+            {/* Contador de cupones activos */}
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+              Mostrando <strong style={{ color: 'var(--text-ink)' }}>{filteredCoupons.length}</strong> {filteredCoupons.length === 1 ? 'cupón verificado' : 'cupones verificados'}
             </div>
           </div>
 
@@ -320,8 +302,8 @@ export const CuponesCatalog = ({ providers = [] }) => {
           </div>
         )}
 
-        {/* VISTA 1: LISTA HORIZONTAL EDITORIAL */}
-        {viewMode === 'list' && filteredCoupons.length > 0 && (
+        {/* LISTA HORIZONTAL EDITORIAL DE CUPONES */}
+        {filteredCoupons.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {filteredCoupons.map((coupon) => {
               const prov = coupon.provider;
@@ -464,84 +446,6 @@ export const CuponesCatalog = ({ providers = [] }) => {
           </div>
         )}
 
-        {/* VISTA 2: TICKETS VINTAGE DE IMPRENTA */}
-        {viewMode === 'tickets' && filteredCoupons.length > 0 && (
-          <div className="cupones-grid">
-            {filteredCoupons.map((coupon) => {
-              const isUnlocked = unlockedDeals[coupon.id];
-              const isCopied = copiedId === coupon.id;
-              const prov = coupon.provider;
-
-              const expiryFormatted = coupon.expiresAt
-                ? new Date(coupon.expiresAt).toLocaleDateString('es-ES', {
-                    month: 'short',
-                    year: 'numeric',
-                  })
-                : 'Permanente';
-
-              return (
-                <div key={coupon.id} className="coupon-ticket">
-                  {/* Lado Izquierdo del Ticket */}
-                  <div className="ticket-left">
-                    <div className="ticket-notch-top"></div>
-                    <div className="ticket-notch-bottom"></div>
-
-                    <div>
-                      <div className="ticket-discount">{coupon.discount}</div>
-                      <div className="ticket-provider" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        {prov?.logoUrl && (
-                          <img
-                            src={normalizeImageUrl(prov.logoUrl)}
-                            alt={prov.name}
-                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                            style={{ width: '20px', height: '20px', objectFit: 'contain' }}
-                          />
-                        )}
-                        <span>{prov?.name}</span>
-                      </div>
-                      <p className="ticket-condition">{coupon.condition}</p>
-                    </div>
-
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span className="ticket-expiry">Válido hasta: {expiryFormatted}</span>
-                      {coupon.verified && (
-                        <span className="badge-tag badge-green">✓ Verificado</span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Lado Derecho del Ticket */}
-                  <div className="ticket-right">
-                    <div className="ticket-code-box">{coupon.code}</div>
-
-                    <button
-                      onClick={() => handleCopyCode(coupon)}
-                      className="btn btn-secondary btn-sm"
-                      style={{ width: '100%' }}
-                    >
-                      <Icon name={isCopied ? 'check' : 'copy'} size={14} />
-                      <span>{isCopied ? '¡Copiado!' : 'Copiar cupón'}</span>
-                    </button>
-
-                    {isUnlocked && (
-                      <a
-                        href={prov?.slug ? `/go/${prov.slug}?c=${coupon.id}` : prov?.affiliateUrl}
-                        target="_blank"
-                        rel="sponsored noopener noreferrer"
-                        onClick={() => handleGoToOffer(coupon)}
-                        className="btn btn-primary btn-sm"
-                        style={{ width: '100%', animation: 'toastIn 0.25s ease' }}
-                      >
-                        <span>Ir a la oferta</span>
-                        <Icon name="external" size={13} color="#fff" />
-                      </a>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
 
       </div>
     </div>
