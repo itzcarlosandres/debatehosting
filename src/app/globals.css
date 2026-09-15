@@ -3757,10 +3757,9 @@ input:checked + .toggle-slider:before {
 
 .mejores-clean-logo {
   height: 32px;
-  width: 75px;
-  max-width: 75px;
+  width: auto;
+  max-width: 85px;
   object-fit: contain;
-  object-position: left center;
   flex-shrink: 0;
 }
 

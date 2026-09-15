@@ -145,13 +145,18 @@ export const Mejores = ({ providers = [], settings = {} }) => {
                       className="mejores-clean-logo"
                       onError={(e) => {
                         e.currentTarget.style.display = 'none';
+                        if (e.currentTarget.nextElementSibling) {
+                          e.currentTarget.nextElementSibling.style.display = 'flex';
+                        }
                       }}
                     />
-                  ) : (
-                    <div className="mejores-clean-monogram">
-                      {card.displayName.slice(0, 2).toUpperCase()}
-                    </div>
-                  )}
+                  ) : null}
+                  <div
+                    className="mejores-clean-monogram"
+                    style={{ display: prov?.logoUrl ? 'none' : 'flex' }}
+                  >
+                    {card.displayName.slice(0, 2).toUpperCase()}
+                  </div>
 
                   <div className="mejores-brand-meta">
                     <h3 className="mejores-clean-name">{card.displayName}</h3>
