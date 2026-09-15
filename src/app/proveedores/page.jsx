@@ -4,6 +4,7 @@ import { Ticker } from '@/components/Ticker';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { ProveedoresCatalog } from '@/components/ProveedoresCatalog';
+import { formatProvider } from '@/lib/serverImageHelper';
 
 export const metadata = {
   title: 'Directorio de Proveedores de Hosting Web (Edición 2026) | Comparativas y Auditoría',
@@ -36,6 +37,8 @@ export default async function ProveedoresPage() {
       orderBy: { order: 'asc' },
     }),
   ]);
+
+  const providers = rawProviders.map(formatProvider);
 
   const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || settings?.siteUrl || 'https://debatehosting.com').replace(/\/+$/, '');
 
@@ -94,7 +97,7 @@ export default async function ProveedoresPage() {
       <Ticker items={tickerItems} />
       <Header settings={settings} />
       <main>
-        <ProveedoresCatalog providers={rawProviders} categories={categories} />
+        <ProveedoresCatalog providers={providers} categories={categories} />
       </main>
       <Footer settings={settings} />
     </div>

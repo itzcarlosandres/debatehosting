@@ -5,6 +5,8 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { OfertasCatalog } from '@/components/OfertasCatalog';
 
+import { formatProvider } from '@/lib/serverImageHelper';
+
 export const metadata = {
   title: 'Catálogo de Ofertas y Precios de Hosting (2026)',
   description:
@@ -42,16 +44,8 @@ export default async function OfertasPage() {
     }),
   ]);
 
-  // Formatear categorías
-  const providers = rawProviders.map((p) => {
-    let cats = [];
-    try {
-      cats = JSON.parse(p.categories);
-    } catch (e) {
-      cats = [p.categories];
-    }
-    return { ...p, categories: cats };
-  });
+  // Formatear proveedores y validar que sus logos existan en disco (o cargar fallback por dominio)
+  const providers = rawProviders.map(formatProvider);
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://debatehosting.com';
 
