@@ -12,7 +12,6 @@ import { Footer } from '@/components/Footer';
 import { Icon } from '@/components/Icon';
 import Link from 'next/link';
 
-import { formatProvider } from '@/lib/serverImageHelper';
 
 export const metadata = {
   title: 'Debatehosting — El Gran Observatorio de Hosting, VPS y Cupones',
@@ -61,13 +60,30 @@ export default async function HomePage() {
     }),
   ]);
 
-  // Formatear proveedores y validar que sus logos existan en disco (o cargar fallback por dominio)
-  const providers = rawProviders.map(formatProvider);
+  // Formatear categorías manteniendo los datos de los proveedores intactos
+  const providers = rawProviders.map((p) => {
+    let cats = [];
+    try {
+      cats = typeof p.categories === 'string' ? JSON.parse(p.categories) : (p.categories || []);
+    } catch (e) {
+      cats = [p.categories];
+    }
+    return { ...p, categories: cats };
+  });
 
-  const picks = rawPicks.map((pk) => ({
-    ...pk,
-    provider: formatProvider(pk.provider),
-  }));
+  const picks = rawPicks.map((pk) => {
+    if (!pk.provider) return pk;
+    let cats = [];
+    try {
+      cats = typeof pk.provider.categories === 'string' ? JSON.parse(pk.provider.categories) : (pk.provider.categories || []);
+    } catch (e) {
+      cats = [pk.provider.categories];
+    }
+    return {
+      ...pk,
+      provider: { ...pk.provider, categories: cats },
+    };
+  });
 
   const totalCouponsCount = providers.reduce(
     (acc, prov) => acc + (prov.coupons ? prov.coupons.length : 0),

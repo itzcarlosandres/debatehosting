@@ -15,12 +15,6 @@ const MIME_TYPES = {
   '.avif': 'image/avif',
 };
 
-// 1x1 pixel PNG transparente como salvaguarda en caso de recurso no encontrado
-const TRANSPARENT_1PX_PNG = Buffer.from(
-  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
-  'base64'
-);
-
 export async function GET(request, context) {
   try {
     let rawSegments = [];
@@ -53,26 +47,65 @@ export async function GET(request, context) {
     // Rutas base candidatas donde se pueden almacenar los uploads en diferentes entornos
     const candidateBaseDirs = [
       path.resolve(process.cwd(), 'public', 'uploads'),
+      path.resolve(process.cwd(), 'public', 'uploads', 'logos'),
       path.resolve('/app', 'public', 'uploads'),
+      path.resolve('/app', 'public', 'uploads', 'logos'),
       path.resolve(process.cwd(), 'uploads'),
+      path.resolve(process.cwd(), 'uploads', 'logos'),
+      path.resolve('/app', 'uploads'),
+      path.resolve('/app', 'uploads', 'logos'),
     ];
 
+    const filename = safeSegments[safeSegments.length - 1];
     let targetPath = null;
 
     for (const baseDir of candidateBaseDirs) {
-      const candidate = path.resolve(baseDir, ...safeSegments);
-      // Validar que no se salga de la carpeta base y que el archivo exista en disco
+      // 1. Coincidencia directa con los segmentos de ruta recibidos
+      const candidateDirect = path.resolve(baseDir, ...safeSegments);
       if (
-        (candidate.startsWith(baseDir + path.sep) || candidate.startsWith(baseDir + '/')) &&
-        fs.existsSync(candidate) &&
-        fs.statSync(candidate).isFile()
+        (candidateDirect.startsWith(baseDir + path.sep) || candidateDirect.startsWith(baseDir + '/')) &&
+        fs.existsSync(candidateDirect) &&
+        fs.statSync(candidateDirect).isFile()
       ) {
-        targetPath = candidate;
+        targetPath = candidateDirect;
+        break;
+      }
+
+      // 2. Coincidencia dentro de subcarpeta 'logos'
+      const candidateInLogos = path.resolve(baseDir, 'logos', ...safeSegments);
+      if (
+        (candidateInLogos.startsWith(baseDir + path.sep) || candidateInLogos.startsWith(baseDir + '/')) &&
+        fs.existsSync(candidateInLogos) &&
+        fs.statSync(candidateInLogos).isFile()
+      ) {
+        targetPath = candidateInLogos;
+        break;
+      }
+
+      // 3. Coincidencia directa por nombre de archivo
+      const candidateFile = path.resolve(baseDir, filename);
+      if (
+        (candidateFile.startsWith(baseDir + path.sep) || candidateFile.startsWith(baseDir + '/')) &&
+        fs.existsSync(candidateFile) &&
+        fs.statSync(candidateFile).isFile()
+      ) {
+        targetPath = candidateFile;
+        break;
+      }
+
+      // 4. Coincidencia por nombre de archivo dentro de subcarpeta 'logos'
+      const candidateFileInLogos = path.resolve(baseDir, 'logos', filename);
+      if (
+        (candidateFileInLogos.startsWith(baseDir + path.sep) || candidateFileInLogos.startsWith(baseDir + '/')) &&
+        fs.existsSync(candidateFileInLogos) &&
+        fs.statSync(candidateFileInLogos).isFile()
+      ) {
+        targetPath = candidateFileInLogos;
         break;
       }
     }
 
-    // Si el archivo existe físicamente, servirlo con su Content-Type y cabeceras de caché
+    // Si el archivo subido existe físicamente en el disco, servirlo con su Content-Type y cabeceras de caché
     if (targetPath) {
       const fileBuffer = fs.readFileSync(targetPath);
       const ext = path.extname(targetPath).toLowerCase();
@@ -87,43 +120,7 @@ export async function GET(request, context) {
       });
     }
 
-    // FALLBACK INTELIGENTE: Si el archivo no existe físicamente en el disco (ej. volumen nuevo o recreado)
-    const requestedFile = safeSegments[safeSegments.length - 1].toLowerCase();
-
-    // 1. Si era un favicon, servir el favicon por defecto de public
-    if (requestedFile.includes('favicon') || requestedFile.includes('rocket') || requestedFile.endsWith('.ico')) {
-      const defaultFavicon = path.resolve(process.cwd(), 'public', 'favicon.svg');
-      if (fs.existsSync(defaultFavicon)) {
-        return new NextResponse(fs.readFileSync(defaultFavicon), {
-          status: 200,
-          headers: {
-            'Content-Type': 'image/svg+xml',
-            'Cache-Control': 'public, max-age=3600',
-          },
-        });
-      }
-    }
-
-    // 2. Si era específicamente el logotipo institucional de la plataforma (branding del sitio)
-    if (
-      requestedFile === 'logo.svg' ||
-      requestedFile === 'logo.png' ||
-      requestedFile === 'site-logo.png' ||
-      requestedFile === 'site-logo.svg'
-    ) {
-      const defaultLogoSvg = path.resolve(process.cwd(), 'public', 'logo.svg');
-      if (fs.existsSync(defaultLogoSvg)) {
-        return new NextResponse(fs.readFileSync(defaultLogoSvg), {
-          status: 200,
-          headers: {
-            'Content-Type': 'image/svg+xml',
-            'Cache-Control': 'public, max-age=3600',
-          },
-        });
-      }
-    }
-
-    // 3. Fallback genérico para imágenes
+    // Si no existe físicamente en el disco, responder con 404 (NUNCA sustituir por favicon ni por el logo del sitio)
     return new NextResponse('Archivo no encontrado', { status: 404 });
   } catch (error) {
     console.error('Error sirviendo archivo subido dinámico:', error);

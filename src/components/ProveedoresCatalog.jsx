@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { Icon } from './Icon';
-import { normalizeImageUrl, getProviderFallbackLogo } from '@/lib/imageHelper';
+import { normalizeImageUrl } from '@/lib/imageHelper';
 
 // Helper to safely parse pros from string, json, or array
 const parseProsList = (rawPros) => {
@@ -395,31 +395,22 @@ export const ProveedoresCatalog = ({ providers = [], categories = [] }) => {
                 {/* Cabecera de la Tarjeta */}
                 <div className="provider-dossier-header">
                   <div className="provider-dossier-brand">
-                    {(() => {
-                      const logoSrc = p.logoUrl ? normalizeImageUrl(p.logoUrl) : getProviderFallbackLogo(p);
-                      return logoSrc ? (
-                        <img
-                          src={logoSrc}
-                          alt={`Logotipo oficial de ${p.name}`}
-                          className="provider-dossier-logo"
-                          onError={(e) => {
-                            const fallback = getProviderFallbackLogo(p);
-                            if (fallback && e.currentTarget.src !== fallback && !e.currentTarget.dataset.fallbackTried) {
-                              e.currentTarget.dataset.fallbackTried = 'true';
-                              e.currentTarget.src = fallback;
-                              return;
-                            }
-                            e.currentTarget.style.display = 'none';
-                            if (e.currentTarget.nextElementSibling) {
-                              e.currentTarget.nextElementSibling.style.display = 'flex';
-                            }
-                          }}
-                        />
-                      ) : null;
-                    })()}
+                    {p.logoUrl ? (
+                      <img
+                        src={normalizeImageUrl(p.logoUrl)}
+                        alt={`Logotipo oficial de ${p.name}`}
+                        className="provider-dossier-logo"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          if (e.currentTarget.nextElementSibling) {
+                            e.currentTarget.nextElementSibling.style.display = 'flex';
+                          }
+                        }}
+                      />
+                    ) : null}
                     <div
                       className="provider-dossier-fallback-logo"
-                      style={{ display: p.logoUrl || getProviderFallbackLogo(p) ? 'none' : 'flex' }}
+                      style={{ display: p.logoUrl ? 'none' : 'flex' }}
                     >
                       {p.name.slice(0, 2).toUpperCase()}
                     </div>
@@ -660,61 +651,48 @@ export const ProveedoresCatalog = ({ providers = [], categories = [] }) => {
                     {/* Logo + Nombre + Plan */}
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-                        {(() => {
-                          const logoSrc = p.logoUrl ? normalizeImageUrl(p.logoUrl) : getProviderFallbackLogo(p);
-                          return (
-                            <>
-                              {logoSrc ? (
-                                <img
-                                  src={logoSrc}
-                                  alt={p.name}
-                                  style={{
-                                    width: '54px',
-                                    height: '54px',
-                                    objectFit: 'contain',
-                                    backgroundColor: '#FFFFFF',
-                                    padding: '4px',
-                                    borderRadius: '6px',
-                                    border: '1.5px solid var(--border-ink)',
-                                    boxShadow: '1px 1px 0 rgba(23, 20, 15, 0.1)',
-                                    flexShrink: 0,
-                                  }}
-                                  onError={(e) => {
-                                    const fallback = getProviderFallbackLogo(p);
-                                    if (fallback && e.currentTarget.src !== fallback && !e.currentTarget.dataset.fallbackTried) {
-                                      e.currentTarget.dataset.fallbackTried = 'true';
-                                      e.currentTarget.src = fallback;
-                                      return;
-                                    }
-                                    e.currentTarget.style.display = 'none';
-                                    if (e.currentTarget.nextElementSibling) {
-                                      e.currentTarget.nextElementSibling.style.display = 'flex';
-                                    }
-                                  }}
-                                />
-                              ) : null}
-                              <div
-                                style={{
-                                  width: '54px',
-                                  height: '54px',
-                                  backgroundColor: '#FAF7EE',
-                                  borderRadius: '6px',
-                                  border: '1.5px solid var(--border-ink)',
-                                  boxShadow: '1px 1px 0 rgba(23, 20, 15, 0.1)',
-                                  display: logoSrc ? 'none' : 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  fontFamily: 'var(--font-mono)',
-                                  fontWeight: 800,
-                                  fontSize: '1.1rem',
-                                  flexShrink: 0,
-                                }}
-                              >
-                                {p.name.slice(0, 2).toUpperCase()}
-                              </div>
-                            </>
-                          );
-                        })()}
+                        {p.logoUrl ? (
+                          <img
+                            src={normalizeImageUrl(p.logoUrl)}
+                            alt={p.name}
+                            style={{
+                              width: '54px',
+                              height: '54px',
+                              objectFit: 'contain',
+                              backgroundColor: '#FFFFFF',
+                              padding: '4px',
+                              borderRadius: '6px',
+                              border: '1.5px solid var(--border-ink)',
+                              boxShadow: '1px 1px 0 rgba(23, 20, 15, 0.1)',
+                              flexShrink: 0,
+                            }}
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              if (e.currentTarget.nextElementSibling) {
+                                e.currentTarget.nextElementSibling.style.display = 'flex';
+                              }
+                            }}
+                          />
+                        ) : null}
+                        <div
+                          style={{
+                            width: '54px',
+                            height: '54px',
+                            backgroundColor: '#FAF7EE',
+                            borderRadius: '6px',
+                            border: '1.5px solid var(--border-ink)',
+                            boxShadow: '1px 1px 0 rgba(23, 20, 15, 0.1)',
+                            display: p.logoUrl ? 'none' : 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontFamily: 'var(--font-mono)',
+                            fontWeight: 800,
+                            fontSize: '1.1rem',
+                            flexShrink: 0,
+                          }}
+                        >
+                          {p.name.slice(0, 2).toUpperCase()}
+                        </div>
                         <div>
                           <Link
                             href={`/proveedores/${p.slug}`}

@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-import { formatProvider } from '@/lib/serverImageHelper';
-
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
@@ -24,7 +22,18 @@ export async function GET() {
       orderBy: { scorePrecio: 'desc' },
     });
 
-    const formatted = providers.map(formatProvider);
+    const formatted = providers.map((p) => {
+      let cats = [];
+      try {
+        cats = typeof p.categories === 'string' ? JSON.parse(p.categories) : (p.categories || []);
+      } catch (e) {
+        cats = [p.categories];
+      }
+      return {
+        ...p,
+        categories: cats,
+      };
+    });
 
     return NextResponse.json(formatted);
   } catch (error) {

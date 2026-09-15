@@ -4,7 +4,7 @@ import { Ticker } from '@/components/Ticker';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { ProveedoresCatalog } from '@/components/ProveedoresCatalog';
-import { formatProvider } from '@/lib/serverImageHelper';
+
 
 export const metadata = {
   title: 'Directorio de Proveedores de Hosting Web (Edición 2026) | Comparativas y Auditoría',
@@ -38,7 +38,15 @@ export default async function ProveedoresPage() {
     }),
   ]);
 
-  const providers = rawProviders.map(formatProvider);
+  const providers = rawProviders.map((p) => {
+    let cats = [];
+    try {
+      cats = typeof p.categories === 'string' ? JSON.parse(p.categories) : (p.categories || []);
+    } catch (e) {
+      cats = [p.categories];
+    }
+    return { ...p, categories: cats };
+  });
 
   const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || settings?.siteUrl || 'https://debatehosting.com').replace(/\/+$/, '');
 
