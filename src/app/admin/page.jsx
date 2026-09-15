@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Icon } from '@/components/Icon';
 import { useToast } from '@/context/ToastContext';
 import { normalizeImageUrl } from '@/lib/imageHelper';
+import { slugify } from '@/lib/slugify';
 import { DEFAULT_HERO_SETTINGS, DEFAULT_SECTION_HEADERS, DEFAULT_MEJORES_SETTINGS } from '@/lib/settingsDefaults';
 
 const AVAILABLE_CATEGORIES = [
@@ -2157,10 +2158,10 @@ export default function AdminPage() {
                         <input
                           type="text"
                           required
-                          value={provForm.name}
+                          value={provForm.name || ''}
                           onChange={(e) => {
                             const val = e.target.value;
-                            const shouldAutoSlug = !editingProvider || !provForm.slug || provForm.slug === slugify(provForm.name);
+                            const shouldAutoSlug = !editingProvider || !provForm.slug || provForm.slug === slugify(provForm.name || '');
                             setProvForm((prev) => ({
                               ...prev,
                               name: val,
@@ -2179,7 +2180,7 @@ export default function AdminPage() {
                           </label>
                           <button
                             type="button"
-                            onClick={() => setProvForm((prev) => ({ ...prev, slug: slugify(prev.name) }))}
+                            onClick={() => setProvForm((prev) => ({ ...prev, slug: slugify(prev.name || '') }))}
                             style={{
                               background: 'none',
                               border: 'none',
@@ -2198,7 +2199,7 @@ export default function AdminPage() {
                         <input
                           type="text"
                           required
-                          value={provForm.slug}
+                          value={provForm.slug || ''}
                           onChange={(e) => setProvForm({ ...provForm, slug: slugify(e.target.value) })}
                           className="input-editorial"
                           style={{ width: '100%', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}
@@ -2880,7 +2881,7 @@ export default function AdminPage() {
                       <input
                         type="text"
                         required
-                        value={catForm.name}
+                        value={catForm.name || ''}
                         onChange={(e) => {
                           const val = e.target.value;
                           const autoSlug = !editingCat ? slugify(val) : catForm.slug;
@@ -2898,7 +2899,7 @@ export default function AdminPage() {
                       <input
                         type="text"
                         required
-                        value={catForm.slug}
+                        value={catForm.slug || ''}
                         onChange={(e) => setCatForm({ ...catForm, slug: slugify(e.target.value) })}
                         className="input-editorial"
                         style={{ width: '100%', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}
@@ -3142,7 +3143,7 @@ export default function AdminPage() {
                       <input
                         type="text"
                         required
-                        value={badgeForm.label}
+                        value={badgeForm.label || ''}
                         onChange={(e) => {
                           const val = e.target.value.toUpperCase();
                           const autoSlug = !editingBadge ? slugify(val) : badgeForm.slug;
@@ -3160,7 +3161,7 @@ export default function AdminPage() {
                       <input
                         type="text"
                         required
-                        value={badgeForm.slug}
+                        value={badgeForm.slug || ''}
                         onChange={(e) => setBadgeForm({ ...badgeForm, slug: slugify(e.target.value) })}
                         className="input-editorial"
                         style={{ width: '100%', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}

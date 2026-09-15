@@ -13,11 +13,11 @@ export const DEFAULT_HERO_SETTINGS = {
   // Botones CTA
   showPrimaryBtn: true,
   primaryBtnText: 'Pesar Proveedores',
-  primaryBtnUrl: '#balanza',
+  primaryBtnUrl: '/proveedores',
   primaryBtnIcon: 'scale',
   primaryCtaVisible: true,
   primaryCtaText: 'Pesar Proveedores',
-  primaryCtaLink: '#balanza',
+  primaryCtaLink: '/proveedores',
   primaryCtaIcon: 'scale',
   showSecondaryBtn: true,
   secondaryBtnText: 'Ver Ofertas',

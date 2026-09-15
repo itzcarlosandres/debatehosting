@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { Counter } from './Counter';
 import { Icon } from './Icon';
 import { DEFAULT_HERO_SETTINGS } from '@/lib/settingsDefaults';
@@ -22,7 +23,8 @@ export const Hero = ({ providers = [], couponsCount = 0, settings = {} }) => {
 
   const showPrimaryBtn = hero.showPrimaryBtn ?? (hero.primaryCtaVisible !== false);
   const primaryBtnText = hero.primaryBtnText || hero.primaryCtaText || 'Pesar Proveedores';
-  const primaryBtnUrl = hero.primaryBtnUrl || hero.primaryCtaLink || '#balanza';
+  const rawPrimaryBtnUrl = hero.primaryBtnUrl || hero.primaryCtaLink || '/proveedores';
+  const primaryBtnUrl = rawPrimaryBtnUrl === '#balanza' ? '/proveedores' : rawPrimaryBtnUrl;
   const primaryBtnIcon = hero.primaryBtnIcon || hero.primaryCtaIcon || 'scale';
 
   const showSecondaryBtn = hero.showSecondaryBtn ?? (hero.secondaryCtaVisible !== false);
@@ -83,16 +85,16 @@ export const Hero = ({ providers = [], couponsCount = 0, settings = {} }) => {
             {(showPrimaryBtn || showSecondaryBtn) && (
               <div className="hero-actions">
                 {showPrimaryBtn && (
-                  <a href={primaryBtnUrl} className="btn btn-primary">
+                  <Link href={primaryBtnUrl} className="btn btn-primary">
                     <span>{primaryBtnText}</span>
                     <Icon name={primaryBtnIcon} size={16} />
-                  </a>
+                  </Link>
                 )}
                 {showSecondaryBtn && (
-                  <a href={secondaryBtnUrl} className="btn btn-secondary">
+                  <Link href={secondaryBtnUrl} className="btn btn-secondary">
                     <span>{secondaryBtnText}</span>
                     <Icon name={secondaryBtnIcon} size={16} />
-                  </a>
+                  </Link>
                 )}
               </div>
             )}
