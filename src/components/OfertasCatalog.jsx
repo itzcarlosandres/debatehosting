@@ -4,7 +4,7 @@ import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { Icon } from './Icon';
 import { useToast } from '../context/ToastContext';
-import { normalizeImageUrl } from '@/lib/imageHelper';
+import { normalizeImageUrl, getProviderFallbackLogo } from '@/lib/imageHelper';
 
 const CATEGORIES_LIST = [
   { id: 'all', label: 'Todos' },
@@ -434,47 +434,60 @@ export const OfertasCatalog = ({ providers = [] }) => {
                     {/* Cabecera de la tarjeta */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.8rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                        {prov.logoUrl ? (
-                          <img
-                            src={normalizeImageUrl(prov.logoUrl)}
-                            alt={prov.name}
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                              if (e.currentTarget.nextElementSibling) {
-                                e.currentTarget.nextElementSibling.style.display = 'flex';
-                              }
-                            }}
-                            style={{
-                              width: '52px',
-                              height: '52px',
-                              objectFit: 'contain',
-                              backgroundColor: '#FFFFFF',
-                              border: '1.5px solid var(--border-ink)',
-                              borderRadius: '6px',
-                              padding: '3px',
-                              flexShrink: 0,
-                            }}
-                          />
-                        ) : null}
-                        <div
-                          style={{
-                            width: '52px',
-                            height: '52px',
-                            borderRadius: '6px',
-                            backgroundColor: '#FAF7EE',
-                            border: '1.5px solid var(--border-ink)',
-                            display: prov.logoUrl ? 'none' : 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            flexShrink: 0,
-                            fontWeight: 800,
-                            fontSize: '1.1rem',
-                            fontFamily: 'var(--font-mono)',
-                            color: 'var(--text-ink)',
-                          }}
-                        >
-                          {prov.name?.slice(0, 2)?.toUpperCase() || 'DH'}
-                        </div>
+                        {(() => {
+                          const logoSrc = prov.logoUrl ? normalizeImageUrl(prov.logoUrl) : getProviderFallbackLogo(prov);
+                          return (
+                            <>
+                              {logoSrc ? (
+                                <img
+                                  src={logoSrc}
+                                  alt={prov.name}
+                                  onError={(e) => {
+                                    const fallback = getProviderFallbackLogo(prov);
+                                    if (fallback && e.currentTarget.src !== fallback && !e.currentTarget.dataset.fallbackTried) {
+                                      e.currentTarget.dataset.fallbackTried = 'true';
+                                      e.currentTarget.src = fallback;
+                                      return;
+                                    }
+                                    e.currentTarget.style.display = 'none';
+                                    if (e.currentTarget.nextElementSibling) {
+                                      e.currentTarget.nextElementSibling.style.display = 'flex';
+                                    }
+                                  }}
+                                  style={{
+                                    width: '52px',
+                                    height: '52px',
+                                    objectFit: 'contain',
+                                    backgroundColor: '#FFFFFF',
+                                    border: '1.5px solid var(--border-ink)',
+                                    borderRadius: '6px',
+                                    padding: '3px',
+                                    flexShrink: 0,
+                                  }}
+                                />
+                              ) : null}
+                              <div
+                                style={{
+                                  width: '52px',
+                                  height: '52px',
+                                  borderRadius: '6px',
+                                  backgroundColor: '#FAF7EE',
+                                  border: '1.5px solid var(--border-ink)',
+                                  display: logoSrc ? 'none' : 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  flexShrink: 0,
+                                  fontWeight: 800,
+                                  fontSize: '1.05rem',
+                                  fontFamily: 'var(--font-mono)',
+                                  color: 'var(--text-ink)',
+                                }}
+                              >
+                                {prov.name?.slice(0, 2)?.toUpperCase() || 'DH'}
+                              </div>
+                            </>
+                          );
+                        })()}
                         <div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
                             <h3 style={{ fontSize: '1.5rem', lineHeight: 1.2 }}>{prov.name}</h3>
@@ -617,15 +630,23 @@ export const OfertasCatalog = ({ providers = [] }) => {
                     (prov.scorePrecio + prov.scoreRendimiento + prov.scoreSoporte + prov.scoreFacilidad) / 4
                   ).toFixed(1);
 
+                  const logoSrc = prov.logoUrl ? normalizeImageUrl(prov.logoUrl) : getProviderFallbackLogo(prov);
+
                   return (
                     <tr key={prov.id}>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                          {prov.logoUrl ? (
+                          {logoSrc ? (
                             <img
-                              src={normalizeImageUrl(prov.logoUrl)}
+                              src={logoSrc}
                               alt={prov.name}
                               onError={(e) => {
+                                const fallback = getProviderFallbackLogo(prov);
+                                if (fallback && e.currentTarget.src !== fallback && !e.currentTarget.dataset.fallbackTried) {
+                                  e.currentTarget.dataset.fallbackTried = 'true';
+                                  e.currentTarget.src = fallback;
+                                  return;
+                                }
                                 e.currentTarget.style.display = 'none';
                                 if (e.currentTarget.nextElementSibling) {
                                   e.currentTarget.nextElementSibling.style.display = 'flex';
@@ -650,7 +671,7 @@ export const OfertasCatalog = ({ providers = [] }) => {
                               borderRadius: '6px',
                               backgroundColor: '#FAF7EE',
                               border: '1.5px solid var(--border-ink)',
-                              display: prov.logoUrl ? 'none' : 'flex',
+                              display: logoSrc ? 'none' : 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               flexShrink: 0,

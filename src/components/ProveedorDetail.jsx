@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Icon } from './Icon';
-import { normalizeImageUrl } from '@/lib/imageHelper';
+import { normalizeImageUrl, getProviderFallbackLogo } from '@/lib/imageHelper';
 
 export const ProveedorDetail = ({ provider, otherProviders = [] }) => {
   const [copiedCoupon, setCopiedCoupon] = useState(null);
@@ -131,21 +131,45 @@ export const ProveedorDetail = ({ provider, otherProviders = [] }) => {
         <div className="hero-brand-headline-wrap">
           {/* Emblema de Marca Elegante */}
           <div className="hero-brand-emblem">
-            {provider.logoUrl ? (
-              <img
-                src={normalizeImageUrl(provider.logoUrl)}
-                alt={provider.name}
-                className="hero-brand-logo-img"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-            ) : (
-              <>
-                <span className="hero-brand-monogram">{provider.name.slice(0, 2).toUpperCase()}</span>
-                <span className="hero-brand-pill">HOSTING</span>
-              </>
-            )}
+            {(() => {
+              const logoSrc = provider.logoUrl ? normalizeImageUrl(provider.logoUrl) : getProviderFallbackLogo(provider);
+              return (
+                <>
+                  {logoSrc ? (
+                    <img
+                      src={logoSrc}
+                      alt={provider.name}
+                      className="hero-brand-logo-img"
+                      onError={(e) => {
+                        const fallback = getProviderFallbackLogo(provider);
+                        if (fallback && e.currentTarget.src !== fallback && !e.currentTarget.dataset.fallbackTried) {
+                          e.currentTarget.dataset.fallbackTried = 'true';
+                          e.currentTarget.src = fallback;
+                          return;
+                        }
+                        e.currentTarget.style.display = 'none';
+                        if (e.currentTarget.nextElementSibling) {
+                          e.currentTarget.nextElementSibling.style.display = 'flex';
+                        }
+                      }}
+                    />
+                  ) : null}
+                  <div
+                    style={{
+                      display: logoSrc ? 'none' : 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '100%',
+                      height: '100%',
+                    }}
+                  >
+                    <span className="hero-brand-monogram">{provider.name.slice(0, 2).toUpperCase()}</span>
+                    <span className="hero-brand-pill">HOSTING</span>
+                  </div>
+                </>
+              );
+            })()}
           </div>
 
           <div style={{ flex: 1 }}>
@@ -782,39 +806,54 @@ export const ProveedorDetail = ({ provider, otherProviders = [] }) => {
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.7rem' }}>
-                      {other.logoUrl ? (
-                        <img
-                          src={normalizeImageUrl(other.logoUrl)}
-                          alt={other.name}
-                          style={{
-                            width: '28px',
-                            height: '28px',
-                            objectFit: 'contain',
-                            borderRadius: '3px',
-                            border: '1px solid rgba(23,20,15,0.1)',
-                          }}
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                          }}
-                        />
-                      ) : (
-                        <div
-                          style={{
-                            width: '28px',
-                            height: '28px',
-                            backgroundColor: '#FAF7EE',
-                            borderRadius: '3px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontFamily: 'var(--font-mono)',
-                            fontSize: '0.75rem',
-                            fontWeight: 800,
-                          }}
-                        >
-                          {other.name.slice(0, 2).toUpperCase()}
-                        </div>
-                      )}
+                      {(() => {
+                        const logoSrc = other.logoUrl ? normalizeImageUrl(other.logoUrl) : getProviderFallbackLogo(other);
+                        return (
+                          <>
+                            {logoSrc ? (
+                              <img
+                                src={logoSrc}
+                                alt={other.name}
+                                style={{
+                                  width: '28px',
+                                  height: '28px',
+                                  objectFit: 'contain',
+                                  borderRadius: '3px',
+                                  border: '1px solid rgba(23,20,15,0.1)',
+                                }}
+                                onError={(e) => {
+                                  const fallback = getProviderFallbackLogo(other);
+                                  if (fallback && e.currentTarget.src !== fallback && !e.currentTarget.dataset.fallbackTried) {
+                                    e.currentTarget.dataset.fallbackTried = 'true';
+                                    e.currentTarget.src = fallback;
+                                    return;
+                                  }
+                                  e.currentTarget.style.display = 'none';
+                                  if (e.currentTarget.nextElementSibling) {
+                                    e.currentTarget.nextElementSibling.style.display = 'flex';
+                                  }
+                                }}
+                              />
+                            ) : null}
+                            <div
+                              style={{
+                                width: '28px',
+                                height: '28px',
+                                backgroundColor: '#FAF7EE',
+                                borderRadius: '3px',
+                                display: logoSrc ? 'none' : 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontFamily: 'var(--font-mono)',
+                                fontSize: '0.75rem',
+                                fontWeight: 800,
+                              }}
+                            >
+                              {other.name.slice(0, 2).toUpperCase()}
+                            </div>
+                          </>
+                        );
+                      })()}
                       <div>
                         <span style={{ fontWeight: 700, fontSize: '0.95rem', display: 'block', lineHeight: 1.1 }}>
                           {other.name}

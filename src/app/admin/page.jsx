@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Icon } from '@/components/Icon';
 import { useToast } from '@/context/ToastContext';
-import { normalizeImageUrl } from '@/lib/imageHelper';
+import { normalizeImageUrl, getProviderFallbackLogo } from '@/lib/imageHelper';
 import { slugify } from '@/lib/slugify';
 import { DEFAULT_HERO_SETTINGS, DEFAULT_SECTION_HEADERS, DEFAULT_MEJORES_SETTINGS } from '@/lib/settingsDefaults';
 
@@ -1718,47 +1718,60 @@ export default function AdminPage() {
                       <tr key={p.id}>
                         <td>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            {p.logoUrl ? (
-                              <img
-                                src={normalizeImageUrl(p.logoUrl)}
-                                alt={p.name}
-                                onError={(e) => {
-                                  e.currentTarget.style.display = 'none';
-                                  if (e.currentTarget.nextElementSibling) {
-                                    e.currentTarget.nextElementSibling.style.display = 'flex';
-                                  }
-                                }}
-                                style={{
-                                  width: '32px',
-                                  height: '32px',
-                                  objectFit: 'contain',
-                                  borderRadius: '4px',
-                                  backgroundColor: '#FFFFFF',
-                                  padding: '2px',
-                                  border: isDark ? '1px solid #383025' : '1px solid rgba(23,20,15,0.15)',
-                                  flexShrink: 0,
-                                }}
-                              />
-                            ) : null}
-                            <div
-                              style={{
-                                width: '32px',
-                                height: '32px',
-                                borderRadius: '4px',
-                                backgroundColor: isDark ? '#1F1B15' : 'rgba(23,20,15,0.06)',
-                                color: isDark ? '#46C285' : 'var(--green-primary)',
-                                border: isDark ? '1px solid #383025' : '1px solid rgba(23,20,15,0.15)',
-                                display: p.logoUrl ? 'none' : 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontFamily: 'var(--font-mono)',
-                                fontSize: '0.75rem',
-                                fontWeight: 700,
-                                flexShrink: 0,
-                              }}
-                            >
-                              {p.name.slice(0, 2).toUpperCase()}
-                            </div>
+                            {(() => {
+                              const logoSrc = p.logoUrl ? normalizeImageUrl(p.logoUrl) : getProviderFallbackLogo(p);
+                              return (
+                                <>
+                                  {logoSrc ? (
+                                    <img
+                                      src={logoSrc}
+                                      alt={p.name}
+                                      onError={(e) => {
+                                        const fallback = getProviderFallbackLogo(p);
+                                        if (fallback && e.currentTarget.src !== fallback && !e.currentTarget.dataset.fallbackTried) {
+                                          e.currentTarget.dataset.fallbackTried = 'true';
+                                          e.currentTarget.src = fallback;
+                                          return;
+                                        }
+                                        e.currentTarget.style.display = 'none';
+                                        if (e.currentTarget.nextElementSibling) {
+                                          e.currentTarget.nextElementSibling.style.display = 'flex';
+                                        }
+                                      }}
+                                      style={{
+                                        width: '32px',
+                                        height: '32px',
+                                        objectFit: 'contain',
+                                        borderRadius: '4px',
+                                        backgroundColor: '#FFFFFF',
+                                        padding: '2px',
+                                        border: isDark ? '1px solid #383025' : '1px solid rgba(23,20,15,0.15)',
+                                        flexShrink: 0,
+                                      }}
+                                    />
+                                  ) : null}
+                                  <div
+                                    style={{
+                                      width: '32px',
+                                      height: '32px',
+                                      borderRadius: '4px',
+                                      backgroundColor: isDark ? '#1F1B15' : 'rgba(23,20,15,0.06)',
+                                      color: isDark ? '#46C285' : 'var(--green-primary)',
+                                      border: isDark ? '1px solid #383025' : '1px solid rgba(23,20,15,0.15)',
+                                      display: logoSrc ? 'none' : 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      fontFamily: 'var(--font-mono)',
+                                      fontSize: '0.75rem',
+                                      fontWeight: 700,
+                                      flexShrink: 0,
+                                    }}
+                                  >
+                                    {p.name.slice(0, 2).toUpperCase()}
+                                  </div>
+                                </>
+                              );
+                            })()}
                             <div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
                                 <span style={{ fontWeight: 700, fontSize: '1rem' }}>{p.name}</span>

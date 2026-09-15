@@ -4,7 +4,7 @@ import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { Icon } from './Icon';
 import { useToast } from '../context/ToastContext';
-import { normalizeImageUrl } from '@/lib/imageHelper';
+import { normalizeImageUrl, getProviderFallbackLogo } from '@/lib/imageHelper';
 import { DEFAULT_SECTION_HEADERS } from '@/lib/settingsDefaults';
 
 const CATEGORIES_LIST = [
@@ -142,15 +142,23 @@ export const Ofertas = ({ providers = [], settings = {} }) => {
                     ? Math.round(((prov.priceBefore - prov.priceFrom) / prov.priceBefore) * 100)
                     : 0;
 
+                const logoSrc = prov.logoUrl ? normalizeImageUrl(prov.logoUrl) : getProviderFallbackLogo(prov);
+
                 return (
                   <tr key={prov.id}>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                        {prov.logoUrl ? (
+                        {logoSrc ? (
                           <img
-                            src={normalizeImageUrl(prov.logoUrl)}
+                            src={logoSrc}
                             alt={prov.name}
                             onError={(e) => {
+                              const fallback = getProviderFallbackLogo(prov);
+                              if (fallback && e.currentTarget.src !== fallback && !e.currentTarget.dataset.fallbackTried) {
+                                e.currentTarget.dataset.fallbackTried = 'true';
+                                e.currentTarget.src = fallback;
+                                return;
+                              }
                               e.currentTarget.style.display = 'none';
                               if (e.currentTarget.nextElementSibling) {
                                 e.currentTarget.nextElementSibling.style.display = 'flex';
@@ -175,7 +183,7 @@ export const Ofertas = ({ providers = [], settings = {} }) => {
                             borderRadius: '6px',
                             backgroundColor: '#FAF7EE',
                             border: '1.5px solid var(--border-ink)',
-                            display: prov.logoUrl ? 'none' : 'flex',
+                            display: logoSrc ? 'none' : 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             flexShrink: 0,

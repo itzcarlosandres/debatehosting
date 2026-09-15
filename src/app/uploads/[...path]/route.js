@@ -104,8 +104,13 @@ export async function GET(request, context) {
       }
     }
 
-    // 2. Si era un logotipo, servir el logo por defecto de public
-    if (requestedFile.includes('logo') || requestedFile.includes('brand')) {
+    // 2. Si era específicamente el logotipo institucional de la plataforma (branding del sitio)
+    if (
+      requestedFile === 'logo.svg' ||
+      requestedFile === 'logo.png' ||
+      requestedFile === 'site-logo.png' ||
+      requestedFile === 'site-logo.svg'
+    ) {
       const defaultLogoSvg = path.resolve(process.cwd(), 'public', 'logo.svg');
       if (fs.existsSync(defaultLogoSvg)) {
         return new NextResponse(fs.readFileSync(defaultLogoSvg), {
